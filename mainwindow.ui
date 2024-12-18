@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1354</width>
-    <height>794</height>
+    <width>1022</width>
+    <height>643</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>IC Control</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -36,7 +36,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="label_3">
                <property name="text">
-                <string>Current device:</string>
+                <string>Current chip:</string>
                </property>
               </widget>
              </item>
@@ -140,7 +140,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_34">
                <property name="text">
-                <string>Devices enabled:</string>
+                <string>Chips enabled:</string>
                </property>
               </widget>
              </item>
@@ -174,7 +174,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Number of devices:</string>
+                <string>Number of chips:</string>
                </property>
               </widget>
              </item>
@@ -256,7 +256,7 @@
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string>Chip Reset</string>
+                  <string>Chips reset</string>
                  </property>
                 </widget>
                </item>
@@ -266,7 +266,7 @@
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string>Altera Reset</string>
+                  <string>Altera reset</string>
                  </property>
                 </widget>
                </item>
@@ -441,7 +441,7 @@
                 <bool>false</bool>
                </property>
                <property name="text">
-                <string>Initiate devices</string>
+                <string>Initiate chips</string>
                </property>
               </widget>
              </item>
@@ -544,38 +544,14 @@
         </item>
         <item row="1" column="1">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLineEdit" name="LineEdit_AcquisitionDeviceName">
-              <property name="inputMask">
-               <string/>
-              </property>
-              <property name="text">
-               <string>/dev/xray_scanner</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="PushButton_AcquisitionConnect">
-              <property name="text">
-               <string>Connect</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="PushButton_AcquisitionDisconnect">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Disconnect</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_36">
+            <property name="text">
+             <string>Data device:</string>
+            </property>
+           </widget>
           </item>
-          <item row="0" column="0">
+          <item row="1" column="0">
            <widget class="QLabel" name="label">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -584,7 +560,53 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Acquisition device</string>
+             <string>Acquisition device:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="LineEdit_DataDeviceName">
+            <property name="text">
+             <string>/dev/ft2232h_ic_a</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="LineEdit_AcquisitionDeviceName">
+            <property name="inputMask">
+             <string/>
+            </property>
+            <property name="text">
+             <string>/dev/ft2232h_ic_b</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" rowspan="3">
+           <widget class="QPushButton" name="PushButton_AcquisitionConnect">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Connect</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" rowspan="3">
+           <widget class="QPushButton" name="PushButton_AcquisitionDisconnect">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Disconnect</string>
             </property>
            </widget>
           </item>
@@ -1737,7 +1759,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1354</width>
+     <width>1022</width>
      <height>20</height>
     </rect>
    </property>

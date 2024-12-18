@@ -899,9 +899,9 @@ void MainWindow::onSpillTimeout()
 void MainWindow::onAcquisitionDeviceConnectClicked()
 {
   QString name = ui->LineEdit_AcquisitionDeviceName->text();
-
+  QString dataName = ui->LineEdit_DataDeviceName->text();
   this->acquisitionPort = new QSerialPort(name, this);
-  this->acquisitionDataPort = new QSerialPort("/dev/ft2232h_ic_a", this);
+  this->acquisitionDataPort = new QSerialPort(dataName, this);
 
   bool connected = false;
   if (this->acquisitionPort && this->acquisitionPort->open(QIODevice::ReadWrite))
@@ -2284,6 +2284,8 @@ void MainWindow::saveSettings()
   QSettings set;
   QString name = ui->LineEdit_AcquisitionDeviceName->text();
   set.setValue( "device-name", name);
+  QString dataName = ui->LineEdit_DataDeviceName->text();
+  set.setValue( "data-device-name", dataName);
 
   int run = ui->SpinBox_RunNumber->value();
   set.setValue( "run-number", run);
@@ -2333,8 +2335,10 @@ void MainWindow::loadSettings()
   int run = set.value( "run-number", 0).toInt();
   ui->SpinBox_RunNumber->setValue(run);
 
-  QString name = set.value( "device-name", "/dev/xray_scanner").toString();
+  QString name = set.value( "device-name", "/dev/ft2232h_ic_b").toString();
   ui->LineEdit_AcquisitionDeviceName->setText(name);
+  QString dataName = set.value( "data-device-name", "/dev/ft2232h_ic_a").toString();
+  ui->LineEdit_DataDeviceName->setText(dataName);
 
   int nofchips = set.value( "nof-chips", 24).toInt();
   ui->HorizontalSlider_Devices->setValue(nofchips);

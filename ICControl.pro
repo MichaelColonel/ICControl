@@ -32,7 +32,7 @@ greaterThan( QT_MAJOR_VERSION, 4) {
     CONFIG += serialport
 }
 
-TARGET = IC_Run2024
+TARGET = ICControl
 
 TEMPLATE = app
 
