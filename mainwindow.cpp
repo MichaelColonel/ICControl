@@ -35,7 +35,7 @@
 #include "rapidjson/filereadstream.h"
 
 namespace {
-
+/*
 constexpr std::array< int, CHANNELS_PER_CHIP > ChamberStrips{
   9,
   10,
@@ -460,7 +460,7 @@ constexpr std::array< std::pair< int, int >, CHANNELS_PER_PLANE > HorizontalChip
   std::pair< int, int >( 9, 10 ),
   std::pair< int, int >( 9, 9 )
 };
-
+*/
 const std::map< int, std::array< int, 4 > > VerticalStripsCalibration{
   std::pair< int, std::array< int, 4 > >( 0, { 75, 95, 171, 191 }),
   std::pair< int, std::array< int, 4 > >( 2, { 65, 80, 161, 178 }),
@@ -797,6 +797,12 @@ MainWindow::MainWindow(QWidget *parent)
   connect( spillTimeoutTimer, SIGNAL(timeout()), this, SLOT(onSpillTimeout())); // iterate spill timeout
   connect( initiationTimer, SIGNAL(timeout()), this, SLOT(onFirstConnectResponce())); // first responce timeout
 
+#ifndef DEBUG
+  this->ui->PushButton_ProcessRawData->hide();
+  this->ui->PushButton_SingleCharSymbol->hide();
+  this->ui->PushButton_Calibrate->hide();
+#endif
+
   for (int i = 0; i < CHIPS_PER_PLANE * 2; ++i)
   {
     connect( this->CheckBox_DevicesEnabled[i], SIGNAL(toggled(bool)), this, SLOT(onDeviceEnabledCheckBoxChecked(bool)));
@@ -808,14 +814,6 @@ MainWindow::MainWindow(QWidget *parent)
   this->initiationTimer->setInterval(1000);
   loadSettings();
   loadICSettings();
-/*
-  for (auto pair: this->chipChannelCalibrationAmplitude)
-  {
-    std::pair< int, int > p = pair.first;
-    double v = pair.second;
-    qDebug() << Q_FUNC_INFO << p.first << ' ' << p.second << ' ' << v << '\n';
-  }
-*/
 }
 
 MainWindow::~MainWindow()
@@ -2045,8 +2043,12 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     }
   };
   // Fill mixed channels array of strip positions between opposite chips
-  formChipStrip( HorizontalChipChannelStrips, HorizontalChipChannels); // horizontal
-  formChipStrip( VerticalChipChannelStrips, VerticalChipChannels); // vertical
+
+//  formChipStrip( HorizontalChipChannelStrips, HorizontalChipChannels); // horizontal
+//  formChipStrip( VerticalChipChannelStrips, VerticalChipChannels); // vertical
+
+  formChipStrip( this->horizontalChipChannelStrips, HorizontalChipChannels); // horizontal
+  formChipStrip( this->verticalChipChannelStrips, VerticalChipChannels); // vertical
 
   this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   if (this->chipsAddresses.size() != static_cast< size_t >(nofChips))
@@ -2219,7 +2221,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         else
         {
-          chipStrip = findChipStrip(HorizontalChipChannelStrips);
+          chipStrip = findChipStrip(this->horizontalChipChannelStrips);
         }
         this->getHorizontalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getHorizontalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
@@ -2244,7 +2246,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         else
         {
-          chipStrip = findChipStrip(VerticalChipChannelStrips);
+          chipStrip = findChipStrip(this->verticalChipChannelStrips);
         }
         this->getVerticalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
@@ -2397,7 +2399,7 @@ void MainWindow::loadICSettings()
     qCritical() << Q_FUNC_INFO << ": Can't open JSON file";
     return;
   }
-  const size_t size = 10000000;
+  const size_t size = 100000;
   std::unique_ptr< char[] > buffer(new char[size]);
   rapidjson::FileReadStream fs(fp, buffer.get(), size);
 
@@ -2412,57 +2414,112 @@ void MainWindow::loadICSettings()
 
   const rapidjson::Value& chipChannels = d["ChipChannels"];
   const rapidjson::Value& verticalChips = d["VerticalChips"];
-  const rapidjson::Value& horizontalChips = d["VerticalChips"];
+  const rapidjson::Value& horizontalChips = d["HorizontalChips"];
   const rapidjson::Value& chips = d["Chips"];
+
+  std::array< int, CHANNELS_PER_CHIP > channels;
+  std::array< int, CHIPS_PER_PLANE > verticalPlaneChips, horizontalPlaneChips;
+  std::bitset< CHIPS_PER_PLANE * 2 > chipChannelsReverse;
   if (chipChannels.IsArray() && chipChannels.Size() == CHANNELS_PER_CHIP)
   {
     for (rapidjson::SizeType i = 0; i < chipChannels.Size(); i++) // Uses SizeType instead of size_t
     {
       int pos = chipChannels[i].GetInt();
-      Q_UNUSED(pos);
+      channels[i] = pos;
     }
   }
   if (verticalChips.IsArray() && verticalChips.Size() == 6)
   {
-    /// error message here
+    for (rapidjson::SizeType i = 0; i < verticalChips.Size(); i++) // Uses SizeType instead of size_t
+    {
+      verticalPlaneChips[i] = verticalChips[i].GetInt();
+    }
   }
   if (horizontalChips.IsArray() && horizontalChips.Size() == 6)
   {
-    /// error message here
+    for (rapidjson::SizeType i = 0; i < horizontalChips.Size(); i++) // Uses SizeType instead of size_t
+    {
+      horizontalPlaneChips[i] = horizontalChips[i].GetInt();
+    }
   }
   if (chips.IsArray())
   {
     for (rapidjson::SizeType i = 0; i < chips.Size(); i++) // Uses SizeType instead of size_t
     {
-      if (chips[i].HasMember("Position"))
+      int position = -1;
+      int reverseChannelsFlag = -1;
+      std::string calibrationFileName;
+      for (rapidjson::Value::ConstMemberIterator layerIter = chips[i].MemberBegin(); layerIter != chips[i].MemberEnd(); ++layerIter)
       {
-        int position = -1;
-        std::string calibrationFileName;
-        for (rapidjson::Value::ConstMemberIterator layerIter = chips[i].MemberBegin(); layerIter != chips[i].MemberEnd(); ++layerIter)
+        const rapidjson::Value& name = layerIter->name;
+        if (name.GetString() == std::string("Position"))
         {
-          const rapidjson::Value& name = layerIter->name;
-          if (name.GetString() == std::string("Position"))
-          {
-            const rapidjson::Value& positionValue = layerIter->value;
-            position = positionValue.GetInt();
-          }
-          if (name.GetString() == std::string("Name"))
-          {
-            const rapidjson::Value& nameValue = layerIter->value;
-            calibrationFileName = std::string("Chip") + std::string(nameValue.GetString()) + ".json";
-          }
+          const rapidjson::Value& positionValue = layerIter->value;
+          position = positionValue.GetInt();
         }
-        if (position != -1 && calibrationFileName.size())
+        if (name.GetString() == std::string("Name"))
         {
-          if (this->loadChipCalibration(calibrationFileName, position))
-          {
-            /// message here
-          }
-          else
-          {
-            /// error message here
-          }
+          const rapidjson::Value& nameValue = layerIter->value;
+          calibrationFileName = std::string("Chip") + std::string(nameValue.GetString()) + ".json";
         }
+        if (name.GetString() == std::string("ReverseChannels"))
+        {
+          const rapidjson::Value& nameValue = layerIter->value;
+          reverseChannelsFlag = nameValue.GetInt();
+        }
+      }
+      if (position != -1 && calibrationFileName.size())
+      {
+        if (this->loadChipCalibration(calibrationFileName, position))
+        {
+          /// message here
+        }
+        else
+        {
+          /// error message here
+        }
+      }
+      if (position != -1 && reverseChannelsFlag != -1)
+      {
+        chipChannelsReverse.set(position - 1, static_cast< bool >(reverseChannelsFlag));
+      }
+    }
+  }
+  // Create vertical chips channels array depending on channels order (reverse or not)
+  int i = 0;
+  for (int verticalChip : verticalPlaneChips)
+  {
+    if (chipChannelsReverse.test(verticalChip - 1))
+    {
+      for (auto iter = channels.rbegin(); iter != channels.rend(); ++iter)
+      {
+        this->verticalChipChannelStrips[i++] = std::make_pair( verticalChip, *iter);
+      }
+    }
+    else
+    {
+      for (auto iter = channels.begin(); iter != channels.end(); ++iter)
+      {
+        this->verticalChipChannelStrips[i++] = std::make_pair( verticalChip, *iter);
+      }
+    }
+  }
+  // Create horizontal chips channels array depending on channels order (reverse or not)
+  i = 0;
+  for (int horizontalChip : horizontalPlaneChips)
+  {
+    if (chipChannelsReverse.test(horizontalChip - 1))
+    {
+      for (auto iter = channels.rbegin(); iter != channels.rend(); ++iter)
+      {
+        this->horizontalChipChannelStrips[i++] = std::make_pair( horizontalChip, *iter);
+      }
+    }
+    else
+    {
+      for (auto iter = channels.begin(); iter != channels.end(); ++iter)
+      {
+        this->horizontalChipChannelStrips[i++] = std::make_pair( horizontalChip, *iter);
       }
     }
   }
@@ -2481,7 +2538,7 @@ bool MainWindow::loadChipCalibration(const std::string& jsonFileName, int positi
     qCritical() << Q_FUNC_INFO << ": Can't open JSON file: " << jsonFileName.c_str();
     return false;
   }
-  const size_t size = 10000000;
+  const size_t size = 100000;
   std::unique_ptr< char[] > buffer(new char[size]);
   rapidjson::FileReadStream fs(fp, buffer.get(), size);
 
@@ -2886,6 +2943,8 @@ void MainWindow::onOpenRootFileClicked()
     return;
   }
 
+  this->ui->ListWidget_Spills->clear();
+
   std::string fname = rootFileName.toStdString();
   TFile* f = TFile::Open(fname.c_str());
   TIter keyList(f->GetListOfKeys());
@@ -3018,7 +3077,7 @@ void MainWindow::onProcessSelectedItemsClicked()
           {
             this->chamberResponse = tmpResponse;
             qDebug() << Q_FUNC_INFO << "Number of enabled chips are correct";
-//          this->onProcessSpillChannelsCountsClicked();
+            this->onProcessSpillChannelsCountsClicked();
           }
           this->acquisitionDataBuffer.clear();
         }
@@ -3474,8 +3533,8 @@ void MainWindow::onCalibrateClicked()
   std::map< std::pair< int, int >, Double_t > dataMap;
   for (int i = 0; i < CHANNELS_PER_PLANE; ++i)
   {
-    std::pair< int, int > chipStripHorizontal = HorizontalChipChannelStrips[i];
-    std::pair< int, int > chipStripVertical = VerticalChipChannelStrips[i];
+    std::pair< int, int > chipStripHorizontal = this->horizontalChipChannelStrips[i];
+    std::pair< int, int > chipStripVertical = this->verticalChipChannelStrips[i];
     Double_t xV, yV, xH, yH;
     Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( i, xV, yV);
     pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( i, xH, yH);

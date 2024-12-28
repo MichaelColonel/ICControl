@@ -151,6 +151,7 @@ private:
   void saveSettings();
   void loadSettings();
   void loadICSettings();
+  void loadChipChannelStripSettings();
   bool loadChipCalibration(const std::string& fileName, int position = -1);
 
   TCanvas* getVerticalStripsCanvas() const { return this->rootCanvas[StripsOrientationType::ORIENTATION_VERTICAL]; }
@@ -244,6 +245,9 @@ private:
   TPad* calibrationPad{ nullptr };
   TGraph* calibrationGraph{ nullptr };
   std::array< QCheckBox*, CHIPS_PER_PLANE * 2 > CheckBox_DevicesEnabled;
+
+  std::array< std::pair< int, int >, CHANNELS_PER_PLANE > verticalChipChannelStrips;
+  std::array< std::pair< int, int >, CHANNELS_PER_PLANE > horizontalChipChannelStrips;
 };
 
 #endif // MAINWINDOW_H
