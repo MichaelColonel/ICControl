@@ -13,15 +13,7 @@ CONFIG += qt warn_on thread
 }
 exists ($(ROOTSYS)/include/rootcint.pri) {
     include ($(ROOTSYS)/include/rootcint.pri)
-#    CREATE_ROOT_DICT_FOR_CLASSES  = ${HEADERS} MyParticle.h MyDetector.h MyEvent.h ShowerMain.h
-#    CREATE_ROOT_DICT_FOR_CLASSES *= ${HEADERS} RSLinkDef.h
 }
-
-#INCLUDEPATH += /usr/local/GATE/include/root
-
-#LIBS += -L/usr/local/GATE/lib/root -lCore -lCint -lRIO -lNet -lHist \
-#        -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix \
-#        -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic
 
 # With C++11 support
 greaterThan( QT_MAJOR_VERSION, 4) {
@@ -38,20 +30,15 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     mainwindow.cpp \
-    acquisitionthread.cpp \
     canvas.cpp
 
 HEADERS  += mainwindow.h \
-    acquisitionthread.h \
     canvas.h
 
 FORMS    += mainwindow.ui
 
 
 unix {
-#    CONFIG += link_pkgconfig
-#    PKGCONFIG += open62541
-#    LIBS += -lftd2xx
 }
 
 win32 {
@@ -60,7 +47,7 @@ win32 {
     INCLUDEPATH += $$PWD/../FTDI_DriverNew
 }
 
-#RESOURCES += BeamComposition.qrc
+#RESOURCES += ICControl.qrc
 
 DISTFILES += ChipsPositions.json \
     Chip1.2.json \
@@ -76,4 +63,4 @@ DISTFILES += ChipsPositions.json \
     Chip2.6.json \
     Chip2.7.json
 
-#TRANSLATIONS += BeamComposition_ru.ts
+#TRANSLATIONS += ICControl_ru.ts

@@ -248,6 +248,7 @@ private:
 
   std::array< std::pair< int, int >, CHANNELS_PER_PLANE > verticalChipChannelStrips;
   std::array< std::pair< int, int >, CHANNELS_PER_PLANE > horizontalChipChannelStrips;
+  double channelStepPerSideMM = 2.;
 };
 
 #endif // MAINWINDOW_H

@@ -2063,7 +2063,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   }
   this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   std::pair< int, int > ref( 1, 1); // reference chip == 1, strip == 1
-  std::pair< int, int > refAmplitude( 2, 15); // amplitude reference chip == 2, strip == 15
+  std::pair< int, int > refAmplitude( 1, 1); // amplitude reference chip == 2, strip == 15
   double refA = this->chipChannelCalibrationA[ref]; // reference value side-A
   double refB = this->chipChannelCalibrationB[ref]; // reference value side-B
   double refAmpl = this->chipChannelCalibrationAmplitude[refAmplitude]; // reference amplitude value
@@ -2228,8 +2228,8 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(dispSigA));
         this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
         this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
-        Double_t x = Double_t(chipStrip); // coordinate X of the strip
-        Double_t x_err = 1. / std::sqrt(12.);
+        Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate X of the strip
+        Double_t x_err = this->channelStepPerSideMM / (2. * std::sqrt(12.));
         if (this->ui->CheckBox_RawData->isChecked())
         {
           x *= 2.;
@@ -2253,8 +2253,8 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->getVerticalStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(dispSigA));
         this->getVerticalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
         this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
-        Double_t x = Double_t(chipStrip); // coordinate X of the strip
-        Double_t x_err = 1. / std::sqrt(12.);
+        Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate Y of the strip
+        Double_t x_err = this->channelStepPerSideMM / (2. * std::sqrt(12.));
         if (this->ui->CheckBox_RawData->isChecked())
         {
           x *= 2.;
@@ -2416,6 +2416,12 @@ void MainWindow::loadICSettings()
   const rapidjson::Value& verticalChips = d["VerticalChips"];
   const rapidjson::Value& horizontalChips = d["HorizontalChips"];
   const rapidjson::Value& chips = d["Chips"];
+  const rapidjson::Value& channelSpacingPerSideMM = d["ChannelStepPerSideMM"];
+
+  if (channelSpacingPerSideMM.IsDouble())
+  {
+    this->channelStepPerSideMM = channelSpacingPerSideMM.GetDouble();
+  }
 
   std::array< int, CHANNELS_PER_CHIP > channels;
   std::array< int, CHIPS_PER_PLANE > verticalPlaneChips, horizontalPlaneChips;
