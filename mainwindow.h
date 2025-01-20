@@ -57,12 +57,12 @@ QT_END_NAMESPACE
 
 enum StripsOrientationType : int {
   ORIENTATION_HORIZONTAL = 0,
-  ORIENTATION_VERTICAL = 1,
+  ORIENTATION_VERTICAL,
   StripsOrientationType_Last
 };
 enum ChannelSideType : int {
   SIDE_A = 0,
-  SIDE_B = 1,
+  SIDE_B,
   ChannelSideType_Last
 };
 enum AdcResolutionType : int {

@@ -2781,7 +2781,8 @@ unsigned short MainWindow::devicesEnabled() const
   std::bitset< CHIPS_PER_PLANE * 2 > enabled;
   for (size_t i = 0; i < this->CheckBox_DevicesEnabled.size(); ++i)
   {
-    enabled.set( i, this->CheckBox_DevicesEnabled[i]->isChecked());
+    int pos = this->CheckBox_DevicesEnabled.size() - i - 1;
+    enabled.set( i, this->CheckBox_DevicesEnabled[pos]->isChecked());
   }
   return static_cast< unsigned short >(enabled.to_ulong());
 }
