@@ -2002,7 +2002,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 //  this->getHorizontalCalibratedStripsGraph()->Clear();
 //  this->getVerticalCalibratedStripsGraph()->Clear();
   std::bitset< CHIPS_PER_PLANE * 2 > devices(chamberResponse.ChipsEnabledCode);
+
   int nofChips = static_cast< int >(devices.count());
+  this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   qDebug() << Q_FUNC_INFO << "Number of chips: " << nofChips;
 
   int intTimeMs = this->ui->HorizontalSlider_IntegrationTime->value() / 2;
@@ -2050,7 +2052,6 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   formChipStrip( this->horizontalChipChannelStrips, HorizontalChipChannels); // horizontal
   formChipStrip( this->verticalChipChannelStrips, VerticalChipChannels); // vertical
 
-  this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   if (this->chipsAddresses.size() != static_cast< size_t >(nofChips))
   {
     qWarning() << Q_FUNC_INFO << tr("Wrong number of chips for reconsruction.\nChips enabled: %1, chips acquired: %2").arg(nofChips).arg(this->chipsAddresses.size());
@@ -2061,7 +2062,6 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 //    msgBox.setText(tr("Wrong number of chips for reconsruction.\nChips enabled: %1, chips acquired: %2").arg(nofChips).arg(this->chipsAddresses.size()));
 //    msgBox.exec();
   }
-  this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   std::pair< int, int > ref( 1, 1); // reference chip == 1, strip == 1
   std::pair< int, int > refAmplitude( 1, 1); // amplitude reference chip == 2, strip == 15
   double refA = this->chipChannelCalibrationA[ref]; // reference value side-A
@@ -2078,9 +2078,13 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   std::string filename = filenameStream.str();
   std::ofstream data(filename);
 
-  for (int chipAddress : this->chipsAddresses)
+  int k = 0;
+  for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
   {
-    if ((chipAddress < 0) || (chipAddress > CHIPS_PER_PLANE * 2) || !devices.test(chipAddress))
+    int chipAddress = *iter;
+    auto tmp = devices;
+    ReverseBits< CHIPS_PER_PLANE * 2 >(tmp);
+    if ((chipAddress < 0) || (chipAddress > CHIPS_PER_PLANE * 2) || !tmp.test(chipAddress))
     {
       // Skip data for wrong chip address
       continue;
@@ -2115,12 +2119,12 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       ChannelInfo info, infoCalib;
       info.pedMeanA = boost::accumulators::mean(statPedA);
       info.pedMeanB = boost::accumulators::mean(statPedB);
-      info.pedMom2A = boost::accumulators::moment<2>(statPedA);
-      info.pedMom2B = boost::accumulators::moment<2>(statPedB);
+      info.pedMom2A = boost::accumulators::moment< 2 >(statPedA);
+      info.pedMom2B = boost::accumulators::moment< 2 >(statPedB);
       info.sigMeanA = boost::accumulators::mean(statSigA);
       info.sigMeanB = boost::accumulators::mean(statSigB);
-      info.sigMom2A = boost::accumulators::moment<2>(statSigA);
-      info.sigMom2B = boost::accumulators::moment<2>(statSigB);
+      info.sigMom2A = boost::accumulators::moment< 2 >(statSigA);
+      info.sigMom2B = boost::accumulators::moment< 2 >(statSigB);
       info.sigCountA = boost::accumulators::count(statSigA);
       info.sigCountB = boost::accumulators::count(statSigB);
       info.sigSumA = boost::accumulators::sum(statSigA);
@@ -2134,8 +2138,8 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       infoCalib.sigCountB = boost::accumulators::count(statCalibSigB);
       infoCalib.sigSumA = boost::accumulators::sum(statCalibSigA);
       infoCalib.sigSumB = boost::accumulators::sum(statCalibSigB);
-      infoCalib.sigMom2A = boost::accumulators::moment<2>(statCalibSigA);
-      infoCalib.sigMom2B = boost::accumulators::moment<2>(statCalibSigB);
+      infoCalib.sigMom2A = boost::accumulators::moment< 2 >(statCalibSigA);
+      infoCalib.sigMom2B = boost::accumulators::moment< 2 >(statCalibSigB);
 
       double signalA = info.sigSumA - info.sigCountA * info.pedMeanA;
       double signalB = info.sigSumB - info.sigCountB * info.pedMeanB;
@@ -2153,35 +2157,37 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 
       QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(chipAddress + 1));
       int chipStrip = chipAddress * CHANNELS_PER_CHIP + i;
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 0, item);
+      int chipStripPos = k * CHANNELS_PER_CHIP + i;
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 0, item);
       item = new QTableWidgetItem(tr("%1").arg(i + 1));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 1, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 1, item);
       item = new QTableWidgetItem(tr("%1").arg(info.pedMeanA));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 2, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 2, item);
       item = new QTableWidgetItem(tr("%1").arg(std::sqrt(dispPedA)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 3, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 3, item);
       item = new QTableWidgetItem(tr("%1").arg(info.pedMeanB));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 4, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 4, item);
       item = new QTableWidgetItem(tr("%1").arg(std::sqrt(dispPedB)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 5, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 5, item);
       item = new QTableWidgetItem(tr("%1").arg(info.sigMeanA - info.pedMeanA));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 6, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 6, item);
       item = new QTableWidgetItem(tr("%1").arg(std::sqrt(dispSigA)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 7, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 7, item);
       item = new QTableWidgetItem(tr("%1").arg(info.sigMeanB - info.pedMeanB));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 8, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 8, item);
       item = new QTableWidgetItem(tr("%1").arg(std::sqrt(dispSigB)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 9, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 9, item);
       item = new QTableWidgetItem(tr("%1").arg(signalA));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 10, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 10, item);
       item = new QTableWidgetItem(tr("%1").arg(signalB));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 11, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 11, item);
       item = new QTableWidgetItem(tr("%1").arg(channelSignal));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 12, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 12, item);
       item = new QTableWidgetItem(tr("%1").arg((info.sigMeanA - info.pedMeanA) / std::sqrt(dispPedA)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 13, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 13, item);
       item = new QTableWidgetItem(tr("%1").arg((info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB)));
-      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStrip, 14, item);
+      this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 14, item);
+
       data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
            << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << ' ' << info.sigMeanA - info.pedMeanA \
            << ' ' << std::sqrt(dispSigA) << ' ' << info.sigMeanB - info.pedMeanB << ' ' << std::sqrt(dispSigB) \
@@ -2264,6 +2270,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->graphFit[ORIENTATION_VERTICAL]->SetPointError(chipStrip, x_err, std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
       }
     }
+    k++;
   }
   data.close();
 
@@ -2594,7 +2601,7 @@ void MainWindow::onInitiateDevicesClicked()
 {
   this->initiateDevicesCommandsList.clear();
 
-  this->initiateDevicesCommandsList.append(ChipResetCommand); // Reset chip
+  this->initiateDevicesCommandsList.append(AlteraResetCommand); // Reset ALTERA
 
   unsigned char buf[BUFFER_SIZE] = {};
   buf[0] = 'O';
@@ -2650,6 +2657,7 @@ void MainWindow::onInitiateDevicesClicked()
   this->initiateDevicesCommandsList.append(beamExtractionInterrupt); // write beam extraction interrupts
 
   this->initiateDevicesCommandsList.append(ListChipsEnabledCommand); // write list of chips enabled
+
 
   this->initiationProgress->setLabelText("Chips initiation...");
   this->initiationProgress->setRange(0, this->initiateDevicesCommandsList.size());
