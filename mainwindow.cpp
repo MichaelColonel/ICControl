@@ -1261,6 +1261,11 @@ void MainWindow::acquisitionSerialPortDataReady()
       qDebug() << Q_FUNC_INFO << "Devices enabled are set";
       this->ui->statusbar->showMessage( tr("Devices enabled are set"), 3000);
       break;
+    case 'P':
+      QApplication::restoreOverrideCursor();
+      qDebug() << Q_FUNC_INFO << "New number of samples are set";
+      this->ui->statusbar->showMessage( tr("New number of samples are set"), 3000);
+      break;
     default:
       QApplication::restoreOverrideCursor();
       break;
@@ -1294,6 +1299,7 @@ void MainWindow::acquisitionSerialPortDataReady()
   }
   if (this->acquisitionResponseBuffer.startsWith("Start") && this->acquisitionResponseBuffer.endsWith("Finish"))
   {
+    qDebug() << Q_FUNC_INFO << "DATA SIZE: " << this->acquisitionDataBuffer.size();
     QApplication::restoreOverrideCursor();
 
     chamberResponse.ChipsEnabledCode = this->devicesEnabled();
@@ -1411,6 +1417,7 @@ void MainWindow::acquisitionDataPortDataReady()
   }
   QByteArray portData = this->acquisitionDataPort->readAll();
   this->acquisitionDataBuffer.push_back(portData);
+//  qDebug() << Q_FUNC_INFO << "BUFFER DATA SIZE: " << this->acquisitionDataBuffer.size();
 }
 
 void MainWindow::acquisitionDataPortError(QSerialPort::SerialPortError)
@@ -1713,8 +1720,13 @@ void MainWindow::setAgilentDutyCycle(int percents)
 
 void MainWindow::onSetSamplesClicked()
 {
-  unsigned char buf[BUFFER_SIZE] = { 'M' };
-  buf[1] = this->ui->HorizontalSlider_Samples->value(); // data
+//  unsigned char buf[BUFFER_SIZE] = { 'M' };
+//  buf[1] = this->ui->HorizontalSlider_Samples->value(); // data
+
+  unsigned char buf[BUFFER_SIZE] = { 'P' };
+  int v = this->ui->HorizontalSlider_Samples->value();
+  buf[1] = v & 0xFF; // data
+  buf[2] = (v >> 8) & 0xFF; // data
 
   this->lastCommandWritten = QByteArray( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   if (this->acquisitionPort && this->acquisitionPort->isOpen())
@@ -2219,6 +2231,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         return -1;
       };
+
+      constexpr double channelStepErrorPerSideMM = 1. / std::sqrt(12.);
+
       if (std::find(std::begin(ChipsHorizontalStrips), std::end(ChipsHorizontalStrips), chipAddress + 1) != ChipsHorizontalStrips.end())
       { // Horizontal strips (Vertical profile)
         if (!this->ui->CheckBox_RawData->isChecked())
@@ -2235,13 +2250,14 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
         this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
         Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate X of the strip
-        Double_t x_err = this->channelStepPerSideMM / (2. * std::sqrt(12.));
+        Double_t x_err = (this->channelStepPerSideMM / 2.) * channelStepErrorPerSideMM;
         if (this->ui->CheckBox_RawData->isChecked())
         {
           x *= 2.;
           x_err *= 2.;
         }
-        this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
+        this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(chipStrip, x, calibChannelSignal * MeanSignalCountToCharge);
+//        this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
         this->graphFit[ORIENTATION_HORIZONTAL]->SetPointError(chipStrip, x_err, std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
       }
       else if (std::find(std::begin(ChipsVerticalStrips), std::end(ChipsVerticalStrips), chipAddress + 1) != ChipsVerticalStrips.end())
@@ -2260,13 +2276,14 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->getVerticalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
         this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
         Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate Y of the strip
-        Double_t x_err = this->channelStepPerSideMM / (2. * std::sqrt(12.));
+        Double_t x_err = (this->channelStepPerSideMM / 2.) * channelStepErrorPerSideMM;
         if (this->ui->CheckBox_RawData->isChecked())
         {
           x *= 2.;
           x_err *= 2.;
         }
-        this->graphFit[ORIENTATION_VERTICAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
+//        this->graphFit[ORIENTATION_VERTICAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
+        this->graphFit[ORIENTATION_VERTICAL]->SetPoint(chipStrip, x, calibChannelSignal * MeanSignalCountToCharge);
         this->graphFit[ORIENTATION_VERTICAL]->SetPointError(chipStrip, x_err, std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
       }
     }
@@ -2616,12 +2633,20 @@ void MainWindow::onInitiateDevicesClicked()
   buf[2] = (devsEnabled >> CHAR_BIT) & 0xFF; // enabled high bite
   QByteArray setDevicesEnabled( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   this->initiateDevicesCommandsList.append(setDevicesEnabled); // write enabled devices
-
+/*
   buf[0] = 'M';
   buf[1] = this->ui->HorizontalSlider_Samples->value(); // data
   buf[2] = 0;
   QByteArray setNumberOfSamples( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   this->initiateDevicesCommandsList.append(setNumberOfSamples); // write number of samples
+*/
+
+  buf[0] = 'P';
+  int v = this->ui->HorizontalSlider_Samples->value();
+  buf[1] = v & 0xFF; // data
+  buf[2] = (v >> 8) & 0xFF; // data
+  QByteArray setNewNumberOfSamples( reinterpret_cast<char*>(buf), BUFFER_SIZE);
+  this->initiateDevicesCommandsList.append(setNewNumberOfSamples); // write number of samples
 
   buf[0] = 'I';
   // data is a intergration time in ms minus 1 is a data written into devices
@@ -2900,7 +2925,7 @@ void MainWindow::onUpdateChannelGraphClicked()
 
     Double_t max = 0, min = 0;
     this->graphChannel->Set(2 * sizeHalfPos);
-    this->graphChannel->GetXaxis()->SetTitle("Counts");
+    this->graphChannel->GetXaxis()->SetTitle("Samples * integ. time");
     int k = 1;
     for (size_t i = 0; i < sizeHalfPos; i++, k++)
     {
@@ -3209,7 +3234,7 @@ bool MainWindow::checkLastCommandWrittenAndRespose()
 
   if (this->acquisitionResponseBuffer.endsWith("OK") || this->acquisitionResponseBuffer.endsWith("Welcome"))
   {
-    const std::string commandHeaders("GMRHAOCIDSEL");
+    const std::string commandHeaders("GMRHAOCIDSELP");
     char comHeader = responseData[0];
     auto CheckHeaderOK = [comHeader](char headerCharacter) -> bool { return comHeader == headerCharacter; };
     auto resComHeader = std::find_if(std::begin(commandHeaders), std::end(commandHeaders), CheckHeaderOK);
@@ -3223,7 +3248,7 @@ bool MainWindow::checkLastCommandWrittenAndRespose()
 
   if (this->acquisitionResponseBuffer.endsWith("NO"))
   {
-    const std::string commandHeaders("OMIE");
+    const std::string commandHeaders("OMIEP");
     char comHeader = responseData[0];
     auto CheckHeaderNO = [comHeader](char headerCharacter) -> bool { return comHeader == headerCharacter; };
 
@@ -3250,7 +3275,7 @@ bool MainWindow::checkLastCommandWrittenAndRespose(const QByteArray& responseBuf
 
   if (responseBuffer.endsWith("OK") || responseBuffer.endsWith("Welcome"))
   {
-    const std::string commandHeaders("GMRHAOCIDSEL");
+    const std::string commandHeaders("GMRHAOCIDSELP");
     char comHeader = responseData[0];
     auto CheckHeaderOK = [comHeader](char headerCharacter) -> bool { return comHeader == headerCharacter; };
     auto resComHeader = std::find_if(std::begin(commandHeaders), std::end(commandHeaders), CheckHeaderOK);
@@ -3264,7 +3289,7 @@ bool MainWindow::checkLastCommandWrittenAndRespose(const QByteArray& responseBuf
 
   if (responseBuffer.endsWith("NO"))
   {
-    const std::string commandHeaders("OMIE");
+    const std::string commandHeaders("OMIEP");
     char comHeader = responseData[0];
     auto CheckHeaderNO = [comHeader](char headerCharacter) -> bool { return comHeader == headerCharacter; };
 

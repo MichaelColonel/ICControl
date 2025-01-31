@@ -61,6 +61,8 @@ DISTFILES += ChipsPositions.json \
     Chip2.4.json \
     Chip2.5.json \
     Chip2.6.json \
-    Chip2.7.json
+    Chip2.7.json \
+    Chip2.8.json \
+    Chip6.x.json
 
 #TRANSLATIONS += ICControl_ru.ts
