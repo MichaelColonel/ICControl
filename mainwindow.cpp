@@ -772,7 +772,6 @@ MainWindow::MainWindow(QWidget *parent)
   connect( ui->PushButton_SetSamples, SIGNAL(clicked()), this, SLOT(onSetSamplesClicked()));
   connect( ui->PushButton_SetDevices, SIGNAL(clicked()), this, SLOT(onSetNumberOfChipsClicked()));
   connect( ui->PushButton_AdcResolutionSet, SIGNAL(clicked()), this, SLOT(onAdcResolutionSetClicked()));
-  connect( ui->ButtonGroup_AdcMode, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(onAcquisitionAdcModeResolutionChanged(QAbstractButton*)));
   connect( ui->PushButton_InitiateDevices, SIGNAL(clicked()), this, SLOT(onInitiateDevicesClicked()));
   connect( ui->PushButton_SingleCharSymbol, SIGNAL(clicked()), this, SLOT(onFirstConnectResponce()));
   connect( ui->PushButton_DevicesEnabled, SIGNAL(clicked()), this, SLOT(onSetDevicesEnabled()));
@@ -792,6 +791,9 @@ MainWindow::MainWindow(QWidget *parent)
   connect( ui->PushButton_Fit, SIGNAL(clicked()), this, SLOT(onFitParametersClicked()));
   connect( ui->PushButton_TanCalculation, SIGNAL(clicked()), this, SLOT(onTangentCalculationClicked()));
   connect( ui->PushButton_Calibrate, SIGNAL(clicked()), this, SLOT(onCalibrateClicked()));
+
+  connect( ui->ButtonGroup_AdcMode, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(onAcquisitionAdcModeResolutionChanged(QAbstractButton*)));
+  connect( ui->ButtonGroup_SelectedCamera, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(onCameraNumberChanged(QAbstractButton*)));
 
   connect( timer, SIGNAL(timeout()), this, SLOT(onRootEventsTimeout())); // iterate ROOT events
   connect( spillTimeoutTimer, SIGNAL(timeout()), this, SLOT(onSpillTimeout())); // iterate spill timeout
@@ -930,7 +932,8 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
     int run = this->ui->SpinBox_RunNumber->value();
     QDateTime dateTime = QDateTime::currentDateTime();
     std::stringstream sstream;
-    sstream << "ROOT_" << run << '_' << dateTime.toString("ddMMyyyy_hhmmss").toStdString() << ".root";
+    int cameraNumber = this->currentCameraNumber();
+    sstream << "ROOT_" << run << "_IC0" << cameraNumber << '_' << dateTime.toString("ddMMyyyy_hhmmss").toStdString() << ".root";
     std::string name = sstream.str();
     if (rootFile)
     {
@@ -1726,7 +1729,7 @@ void MainWindow::onSetSamplesClicked()
   unsigned char buf[BUFFER_SIZE] = { 'P' };
   int v = this->ui->HorizontalSlider_Samples->value();
   buf[1] = v & 0xFF; // data
-  buf[2] = (v >> 8) & 0xFF; // data
+  buf[2] = (v >> CHAR_BIT) & 0xFF; // data
 
   this->lastCommandWritten = QByteArray( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   if (this->acquisitionPort && this->acquisitionPort->isOpen())
@@ -1739,7 +1742,7 @@ void MainWindow::onExternalStartClicked()
 {
   unsigned char buf[BUFFER_SIZE] = { 'A' };
   buf[1] = this->ui->CheckBox_ExternalStart->isChecked(); // data
-  qDebug() << Q_FUNC_INFO << "External start: " << (this->ui->CheckBox_ExternalStart->isChecked() ? "Enabled" : "Disabled");
+//  qDebug() << Q_FUNC_INFO << "External start: " << (this->ui->CheckBox_ExternalStart->isChecked() ? "Enabled" : "Disabled");
 
   this->lastCommandWritten = QByteArray( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   if (this->acquisitionPort && this->acquisitionPort->isOpen())
@@ -1754,7 +1757,7 @@ void MainWindow::onSetIntegrationTimeClicked()
   // data is a (intergration time in ms) / 2 minus 1 is a data written into devices
   buf[1] = (this->ui->HorizontalSlider_IntegrationTime->value() / 2) - 1; // data
 
-  qDebug() << Q_FUNC_INFO << "Integration time code: " << int(buf[1]);
+//  qDebug() << Q_FUNC_INFO << "Integration time code: " << int(buf[1]);
 
   this->lastCommandWritten = QByteArray( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   if (this->acquisitionPort && this->acquisitionPort->isOpen())
@@ -1770,7 +1773,7 @@ void MainWindow::onSetDevicesEnabled()
   buf[1] = devsEnabled & 0xFF; // enabled low bite
   buf[2] = (devsEnabled >> CHAR_BIT) & 0xFF; // enabled high bite
 
-  qDebug() << Q_FUNC_INFO << "Enabled devices: " << devsEnabled;
+//  qDebug() << Q_FUNC_INFO << "Enabled devices: " << devsEnabled;
 
   this->lastCommandWritten = QByteArray( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   if (this->acquisitionPort && this->acquisitionPort->isOpen())
@@ -1784,7 +1787,7 @@ void MainWindow::onSetCapacityClicked()
   std::bitset<8> chipIndex(this->ui->HorizontalSlider_CurrentDevice->value() - 1);
 
   int capacityIndex = this->ui->ComboBox_AcquisitionCapacity->currentIndex();
-  qDebug() << Q_FUNC_INFO << "Capacity index: " << capacityIndex;
+//  qDebug() << Q_FUNC_INFO << "Capacity index: " << capacityIndex;
   std::bitset<3> capacity(capacityIndex);
   chipIndex.set(5, capacity.test(0));
   chipIndex.set(6, capacity.test(1));
@@ -1896,6 +1899,47 @@ void MainWindow::onAcquisitionAdcModeResolutionChanged(QAbstractButton* button)
   this->channelHistPad[SIDE_B]->Modified();
   this->channelHistPad[SIDE_B]->Update();
   QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::onCameraNumberChanged(QAbstractButton* button)
+{
+  QRadioButton* radioButton = qobject_cast<QRadioButton*>(button);
+  if (!radioButton)
+  {
+    return;
+  }
+
+  if (radioButton == this->ui->RadioButton_Camera1)
+  {
+    this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic01_b");
+    this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic01_a");
+  }
+  else if (radioButton == this->ui->RadioButton_Camera2)
+  {
+    this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic02_b");
+    this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic02_a");
+  }
+}
+
+int MainWindow::currentCameraNumber() const
+{
+  QAbstractButton* button = this->ui->ButtonGroup_SelectedCamera->checkedButton();
+  QRadioButton* radioButton = qobject_cast< QRadioButton* >(button);
+
+  if (!radioButton)
+  {
+    return -1;
+  }
+
+  if (radioButton == this->ui->RadioButton_Camera1)
+  {
+    return 1;
+  }
+  else if (radioButton == this->ui->RadioButton_Camera2)
+  {
+    return 2;
+  }
+  return -1;
 }
 
 void MainWindow::storeSpillData(const QDateTime& timeStamp)
@@ -2308,10 +2352,19 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 void MainWindow::saveSettings()
 {
   QSettings set;
-  QString name = ui->LineEdit_AcquisitionDeviceName->text();
-  set.setValue( "device-name", name);
-  QString dataName = ui->LineEdit_DataDeviceName->text();
-  set.setValue( "data-device-name", dataName);
+  int cameraNumber = this->currentCameraNumber();
+  QString acquisitionDeviceName = ui->LineEdit_AcquisitionDeviceName->text();
+  QString dataDeviceName = ui->LineEdit_DataDeviceName->text();
+  switch (cameraNumber)
+  {
+  case 1:
+  case 2:
+    set.setValue( "device-name", acquisitionDeviceName);
+    set.setValue( "data-device-name", dataDeviceName);
+    break;
+  default:
+    break;
+  }
 
   int run = ui->SpinBox_RunNumber->value();
   set.setValue( "run-number", run);
@@ -2640,11 +2693,10 @@ void MainWindow::onInitiateDevicesClicked()
   QByteArray setNumberOfSamples( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   this->initiateDevicesCommandsList.append(setNumberOfSamples); // write number of samples
 */
-
   buf[0] = 'P';
   int v = this->ui->HorizontalSlider_Samples->value();
   buf[1] = v & 0xFF; // data
-  buf[2] = (v >> 8) & 0xFF; // data
+  buf[2] = (v >> CHAR_BIT) & 0xFF; // data
   QByteArray setNewNumberOfSamples( reinterpret_cast<char*>(buf), BUFFER_SIZE);
   this->initiateDevicesCommandsList.append(setNewNumberOfSamples); // write number of samples
 

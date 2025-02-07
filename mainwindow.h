@@ -100,6 +100,7 @@ private slots:
   void onAlteraResetClicked();
   void onExternalStartClicked();
   void onAcquisitionAdcModeResolutionChanged(QAbstractButton*);
+  void onCameraNumberChanged(QAbstractButton*);
   void onAcquisitionClicked();
   void onSingleShotClicked();
   void onWriteCapacitiesClicked();
@@ -142,6 +143,7 @@ private slots:
   void onClearHistogramsClicked();
   void onCalibrateClicked();
 private:
+  int currentCameraNumber() const;
   void storeSpillData(const QDateTime& timeStamp);
   void storeCalibrationData(int offset, const std::vector<int>& sideA, const std::vector<int>& sideB);
   void storeTangentData( int calcBegin, int calcEnd, double tanSideA[CHANNELS_PER_CHIP], double tanSideB[CHANNELS_PER_CHIP]);

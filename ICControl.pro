@@ -42,9 +42,6 @@ unix {
 }
 
 win32 {
-    LIBS += -L$$PWD/../FTDI_DriverNew/i386/ -lftd2xx
-    INCLUDEPATH += C:\root\include
-    INCLUDEPATH += $$PWD/../FTDI_DriverNew
 }
 
 #RESOURCES += ICControl.qrc
@@ -63,6 +60,12 @@ DISTFILES += ChipsPositions.json \
     Chip2.6.json \
     Chip2.7.json \
     Chip2.8.json \
-    Chip6.x.json
+    Chip6.x.json \
+    Chip1.6.json \
+    Chip1.10.json \
+    Chip1.12.json \
+    Chip1.7.json \
+    Chip1.9.json \
+    Chip1.1.json
 
 #TRANSLATIONS += ICControl_ru.ts
