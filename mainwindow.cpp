@@ -70,202 +70,139 @@ constexpr std::array< int, CHANNELS_PER_CHIP > ChamberStrips{
   7,
   8
 };
-
-constexpr std::array< std::pair< int, int >, CHANNELS_PER_PLANE > VerticalChipChannelStrips{
-  std::pair< int, int >( 7, 8 ),
-  std::pair< int, int >( 7, 7 ),
-  std::pair< int, int >( 7, 6 ),
-  std::pair< int, int >( 7, 5 ),
-  std::pair< int, int >( 7, 24 ),
-  std::pair< int, int >( 7, 23 ),
-  std::pair< int, int >( 7, 22 ),
-  std::pair< int, int >( 7, 21 ),
-  std::pair< int, int >( 7, 4 ),
-  std::pair< int, int >( 7, 3 ),
-  std::pair< int, int >( 7, 2 ),
-  std::pair< int, int >( 7, 1 ),
-  std::pair< int, int >( 7, 20 ),
-  std::pair< int, int >( 7, 19 ),
-  std::pair< int, int >( 7, 18 ),
-  std::pair< int, int >( 7, 17 ),
-  std::pair< int, int >( 7, 32 ),
-  std::pair< int, int >( 7, 31 ),
-  std::pair< int, int >( 7, 30 ),
-  std::pair< int, int >( 7, 29 ),
-  std::pair< int, int >( 7, 16 ),
-  std::pair< int, int >( 7, 15 ),
-  std::pair< int, int >( 7, 14 ),
-  std::pair< int, int >( 7, 13 ),
-  std::pair< int, int >( 7, 28 ),
-  std::pair< int, int >( 7, 27 ),
-  std::pair< int, int >( 7, 26 ),
-  std::pair< int, int >( 7, 25 ),
-  std::pair< int, int >( 7, 12 ),
-  std::pair< int, int >( 7, 11 ),
-  std::pair< int, int >( 7, 10 ),
-  std::pair< int, int >( 7, 9 ),
-  std::pair< int, int >( 1, 8 ),
-  std::pair< int, int >( 1, 7 ),
-  std::pair< int, int >( 1, 6 ),
-  std::pair< int, int >( 1, 5 ),
-  std::pair< int, int >( 1, 24 ),
-  std::pair< int, int >( 1, 23 ),
-  std::pair< int, int >( 1, 22 ),
-  std::pair< int, int >( 1, 21 ),
-  std::pair< int, int >( 1, 4 ),
-  std::pair< int, int >( 1, 3 ),
-  std::pair< int, int >( 1, 2 ),
-  std::pair< int, int >( 1, 1 ),
-  std::pair< int, int >( 1, 20 ),
-  std::pair< int, int >( 1, 19 ),
-  std::pair< int, int >( 1, 18 ),
-  std::pair< int, int >( 1, 17 ),
-  std::pair< int, int >( 1, 32 ),
-  std::pair< int, int >( 1, 31 ),
-  std::pair< int, int >( 1, 30 ),
-  std::pair< int, int >( 1, 29 ),
-  std::pair< int, int >( 1, 16 ),
-  std::pair< int, int >( 1, 15 ),
-  std::pair< int, int >( 1, 14 ),
-  std::pair< int, int >( 1, 13 ),
-  std::pair< int, int >( 1, 28 ),
-  std::pair< int, int >( 1, 27 ),
-  std::pair< int, int >( 1, 26 ),
-  std::pair< int, int >( 1, 25 ),
-  std::pair< int, int >( 1, 12 ),
-  std::pair< int, int >( 1, 11 ),
-  std::pair< int, int >( 1, 10 ),
+*/
+constexpr std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 > VerticalChipChannelStrips{
+  std::pair< int, int >( 11, 8 ),
+  std::pair< int, int >( 11, 7 ),
+  std::pair< int, int >( 11, 6 ),
+  std::pair< int, int >( 11, 5 ),
+  std::pair< int, int >( 11, 24 ),
+  std::pair< int, int >( 11, 23 ),
+  std::pair< int, int >( 11, 22 ),
+  std::pair< int, int >( 11, 21 ),
+  std::pair< int, int >( 11, 4 ),
+  std::pair< int, int >( 11, 3 ),
+  std::pair< int, int >( 11, 2 ),
+  std::pair< int, int >( 11, 1 ),
+  std::pair< int, int >( 11, 20 ),
+  std::pair< int, int >( 11, 19 ),
+  std::pair< int, int >( 11, 18 ),
+  std::pair< int, int >( 11, 17 ),
+  std::pair< int, int >( 11, 32 ),
+  std::pair< int, int >( 11, 31 ),
+  std::pair< int, int >( 11, 30 ),
+  std::pair< int, int >( 11, 29 ),
+  std::pair< int, int >( 11, 16 ),
+  std::pair< int, int >( 11, 15 ),
+  std::pair< int, int >( 11, 14 ),
+  std::pair< int, int >( 11, 13 ),
+  std::pair< int, int >( 11, 28 ),
+  std::pair< int, int >( 11, 27 ),
+  std::pair< int, int >( 11, 26 ),
+  std::pair< int, int >( 11, 25 ),
+  std::pair< int, int >( 11, 12 ),
+  std::pair< int, int >( 11, 11 ),
+  std::pair< int, int >( 11, 10 ),
+  std::pair< int, int >( 11, 9 ),
+  std::pair< int, int >( 2, 8 ),
+  std::pair< int, int >( 2, 7 ),
+  std::pair< int, int >( 2, 6 ),
+  std::pair< int, int >( 2, 5 ),
+  std::pair< int, int >( 2, 24 ),
+  std::pair< int, int >( 2, 23 ),
+  std::pair< int, int >( 2, 22 ),
+  std::pair< int, int >( 2, 21 ),
+  std::pair< int, int >( 2, 4 ),
+  std::pair< int, int >( 2, 3 ),
+  std::pair< int, int >( 2, 2 ),
+  std::pair< int, int >( 2, 1 ),
+  std::pair< int, int >( 2, 20 ),
+  std::pair< int, int >( 2, 19 ),
+  std::pair< int, int >( 2, 18 ),
+  std::pair< int, int >( 2, 17 ),
+  std::pair< int, int >( 2, 32 ),
+  std::pair< int, int >( 2, 31 ),
+  std::pair< int, int >( 2, 30 ),
+  std::pair< int, int >( 2, 29 ),
+  std::pair< int, int >( 2, 16 ),
+  std::pair< int, int >( 2, 15 ),
+  std::pair< int, int >( 2, 14 ),
+  std::pair< int, int >( 2, 13 ),
+  std::pair< int, int >( 2, 28 ),
+  std::pair< int, int >( 2, 27 ),
+  std::pair< int, int >( 2, 26 ),
+  std::pair< int, int >( 2, 25 ),
+  std::pair< int, int >( 2, 12 ),
+  std::pair< int, int >( 2, 11 ),
+  std::pair< int, int >( 2, 10 ),
+  std::pair< int, int >( 2, 9 ),
+  std::pair< int, int >( 12, 8 ),
+  std::pair< int, int >( 12, 7 ),
+  std::pair< int, int >( 12, 6 ),
+  std::pair< int, int >( 12, 5 ),
+  std::pair< int, int >( 12, 24 ),
+  std::pair< int, int >( 12, 23 ),
+  std::pair< int, int >( 12, 22 ),
+  std::pair< int, int >( 12, 21 ),
+  std::pair< int, int >( 12, 4 ),
+  std::pair< int, int >( 12, 3 ),
+  std::pair< int, int >( 12, 2 ),
+  std::pair< int, int >( 12, 1 ),
+  std::pair< int, int >( 12, 20 ),
+  std::pair< int, int >( 12, 19 ),
+  std::pair< int, int >( 12, 18 ),
+  std::pair< int, int >( 12, 17 ),
+  std::pair< int, int >( 12, 32 ),
+  std::pair< int, int >( 12, 31 ),
+  std::pair< int, int >( 12, 30 ),
+  std::pair< int, int >( 12, 29 ),
+  std::pair< int, int >( 12, 16 ),
+  std::pair< int, int >( 12, 15 ),
+  std::pair< int, int >( 12, 14 ),
+  std::pair< int, int >( 12, 13 ),
+  std::pair< int, int >( 12, 28 ),
+  std::pair< int, int >( 12, 27 ),
+  std::pair< int, int >( 12, 26 ),
+  std::pair< int, int >( 12, 25 ),
+  std::pair< int, int >( 12, 12 ),
+  std::pair< int, int >( 12, 11 ),
+  std::pair< int, int >( 12, 10 ),
+  std::pair< int, int >( 12, 9 ),
   std::pair< int, int >( 1, 9 ),
-  std::pair< int, int >( 8, 8 ),
-  std::pair< int, int >( 8, 7 ),
-  std::pair< int, int >( 8, 6 ),
-  std::pair< int, int >( 8, 5 ),
-  std::pair< int, int >( 8, 24 ),
-  std::pair< int, int >( 8, 23 ),
-  std::pair< int, int >( 8, 22 ),
-  std::pair< int, int >( 8, 21 ),
-  std::pair< int, int >( 8, 4 ),
-  std::pair< int, int >( 8, 3 ),
-  std::pair< int, int >( 8, 2 ),
-  std::pair< int, int >( 8, 1 ),
-  std::pair< int, int >( 8, 20 ),
-  std::pair< int, int >( 8, 19 ),
-  std::pair< int, int >( 8, 18 ),
-  std::pair< int, int >( 8, 17 ),
-  std::pair< int, int >( 8, 32 ),
-  std::pair< int, int >( 8, 31 ),
-  std::pair< int, int >( 8, 30 ),
-  std::pair< int, int >( 8, 29 ),
-  std::pair< int, int >( 8, 16 ),
-  std::pair< int, int >( 8, 15 ),
-  std::pair< int, int >( 8, 14 ),
-  std::pair< int, int >( 8, 13 ),
-  std::pair< int, int >( 8, 28 ),
-  std::pair< int, int >( 8, 27 ),
-  std::pair< int, int >( 8, 26 ),
-  std::pair< int, int >( 8, 25 ),
-  std::pair< int, int >( 8, 12 ),
-  std::pair< int, int >( 8, 11 ),
-  std::pair< int, int >( 8, 10 ),
-  std::pair< int, int >( 8, 9 ),
-  std::pair< int, int >( 6, 9 ),
-  std::pair< int, int >( 6, 10 ),
-  std::pair< int, int >( 6, 11 ),
-  std::pair< int, int >( 6, 12 ),
-  std::pair< int, int >( 6, 25 ),
-  std::pair< int, int >( 6, 26 ),
-  std::pair< int, int >( 6, 27 ),
-  std::pair< int, int >( 6, 28 ),
-  std::pair< int, int >( 6, 13 ),
-  std::pair< int, int >( 6, 14 ),
-  std::pair< int, int >( 6, 15 ),
-  std::pair< int, int >( 6, 16 ),
-  std::pair< int, int >( 6, 29 ),
-  std::pair< int, int >( 6, 30 ),
-  std::pair< int, int >( 6, 31 ),
-  std::pair< int, int >( 6, 32 ),
-  std::pair< int, int >( 6, 17 ),
-  std::pair< int, int >( 6, 18 ),
-  std::pair< int, int >( 6, 19 ),
-  std::pair< int, int >( 6, 20 ),
-  std::pair< int, int >( 6, 1 ),
-  std::pair< int, int >( 6, 2 ),
-  std::pair< int, int >( 6, 3 ),
-  std::pair< int, int >( 6, 4 ),
-  std::pair< int, int >( 6, 21 ),
-  std::pair< int, int >( 6, 22 ),
-  std::pair< int, int >( 6, 23 ),
-  std::pair< int, int >( 6, 24 ),
-  std::pair< int, int >( 6, 5 ),
-  std::pair< int, int >( 6, 6 ),
-  std::pair< int, int >( 6, 7 ),
-  std::pair< int, int >( 6, 8 ),
-  std::pair< int, int >( 3, 9 ),
-  std::pair< int, int >( 3, 10 ),
-  std::pair< int, int >( 3, 11 ),
-  std::pair< int, int >( 3, 12 ),
-  std::pair< int, int >( 3, 25 ),
-  std::pair< int, int >( 3, 26 ),
-  std::pair< int, int >( 3, 27 ),
-  std::pair< int, int >( 3, 28 ),
-  std::pair< int, int >( 3, 13 ),
-  std::pair< int, int >( 3, 14 ),
-  std::pair< int, int >( 3, 15 ),
-  std::pair< int, int >( 3, 16 ),
-  std::pair< int, int >( 3, 29 ),
-  std::pair< int, int >( 3, 30 ),
-  std::pair< int, int >( 3, 31 ),
-  std::pair< int, int >( 3, 32 ),
-  std::pair< int, int >( 3, 17 ),
-  std::pair< int, int >( 3, 18 ),
-  std::pair< int, int >( 3, 19 ),
-  std::pair< int, int >( 3, 20 ),
-  std::pair< int, int >( 3, 1 ),
-  std::pair< int, int >( 3, 2 ),
-  std::pair< int, int >( 3, 3 ),
-  std::pair< int, int >( 3, 4 ),
-  std::pair< int, int >( 3, 21 ),
-  std::pair< int, int >( 3, 22 ),
-  std::pair< int, int >( 3, 23 ),
-  std::pair< int, int >( 3, 24 ),
-  std::pair< int, int >( 3, 5 ),
-  std::pair< int, int >( 3, 6 ),
-  std::pair< int, int >( 3, 7 ),
-  std::pair< int, int >( 3, 8 ),
-  std::pair< int, int >( 5, 9 ),
-  std::pair< int, int >( 5, 10 ),
-  std::pair< int, int >( 5, 11 ),
-  std::pair< int, int >( 5, 12 ),
-  std::pair< int, int >( 5, 25 ),
-  std::pair< int, int >( 5, 26 ),
-  std::pair< int, int >( 5, 27 ),
-  std::pair< int, int >( 5, 28 ),
-  std::pair< int, int >( 5, 13 ),
-  std::pair< int, int >( 5, 14 ),
-  std::pair< int, int >( 5, 15 ),
-  std::pair< int, int >( 5, 16 ),
-  std::pair< int, int >( 5, 29 ),
-  std::pair< int, int >( 5, 30 ),
-  std::pair< int, int >( 5, 31 ),
-  std::pair< int, int >( 5, 32 ),
-  std::pair< int, int >( 5, 17 ),
-  std::pair< int, int >( 5, 18 ),
-  std::pair< int, int >( 5, 19 ),
-  std::pair< int, int >( 5, 20 ),
-  std::pair< int, int >( 5, 1 ),
-  std::pair< int, int >( 5, 2 ),
-  std::pair< int, int >( 5, 3 ),
-  std::pair< int, int >( 5, 4 ),
-  std::pair< int, int >( 5, 21 ),
-  std::pair< int, int >( 5, 22 ),
-  std::pair< int, int >( 5, 23 ),
-  std::pair< int, int >( 5, 24 ),
-  std::pair< int, int >( 5, 5 ),
-  std::pair< int, int >( 5, 6 ),
-  std::pair< int, int >( 5, 7 ),
-  std::pair< int, int >( 5, 8 )
+  std::pair< int, int >( 1, 10 ),
+  std::pair< int, int >( 1, 11 ),
+  std::pair< int, int >( 1, 12 ),
+  std::pair< int, int >( 1, 25 ),
+  std::pair< int, int >( 1, 26 ),
+  std::pair< int, int >( 1, 27 ),
+  std::pair< int, int >( 1, 28 ),
+  std::pair< int, int >( 1, 13 ),
+  std::pair< int, int >( 1, 14 ),
+  std::pair< int, int >( 1, 15 ),
+  std::pair< int, int >( 1, 16 ),
+  std::pair< int, int >( 1, 29 ),
+  std::pair< int, int >( 1, 30 ),
+  std::pair< int, int >( 1, 31 ),
+  std::pair< int, int >( 1, 32 ),
+  std::pair< int, int >( 1, 17 ),
+  std::pair< int, int >( 1, 18 ),
+  std::pair< int, int >( 1, 19 ),
+  std::pair< int, int >( 1, 20 ),
+  std::pair< int, int >( 1, 1 ),
+  std::pair< int, int >( 1, 2 ),
+  std::pair< int, int >( 1, 3 ),
+  std::pair< int, int >( 1, 4 ),
+  std::pair< int, int >( 1, 21 ),
+  std::pair< int, int >( 1, 22 ),
+  std::pair< int, int >( 1, 23 ),
+  std::pair< int, int >( 1, 24 ),
+  std::pair< int, int >( 1, 5 ),
+  std::pair< int, int >( 1, 6 ),
+  std::pair< int, int >( 1, 7 ),
+  std::pair< int, int >( 1, 8 )
 };
 
+/*
 constexpr std::array< std::pair< int, int >, CHANNELS_PER_PLANE > HorizontalChipChannelStrips{
   std::pair< int, int >( 4, 9 ),
   std::pair< int, int >( 4, 10 ),
@@ -496,8 +433,8 @@ constexpr int BITS = CHAR_BIT * 2;
 /// std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 10, 11, 12, 4, 2, 9 };
 
 /// Camera2
-std::array< int, CHIPS_PER_PLANE > ChipsVerticalStrips{ 8, 2, 12, 7, 1, 11 };
-std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 10, 4, 9, 5, 3, 6 };
+std::array< int, 4 > ChipsVerticalStrips{ 11, 2, 12, 1 };
+std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 6, 3, 5, 9, 4, 10 };
 
 constexpr std::array< Double_t, ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP > GraphHorizontalStrips{};
 constexpr std::array< Double_t, ChipsVerticalStrips.size() * CHANNELS_PER_CHIP > GraphVerticalStrips{};
@@ -1927,14 +1864,14 @@ void MainWindow::onCameraNumberChanged(QAbstractButton* button)
     this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic01_b");
     this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic01_a");
     /// Camera1
-    ChipsVerticalStrips = { 7, 3, 5, 6, 1, 8  };
-    ChipsHorizontalStrips = { 10, 11, 12, 4, 2, 9 };
+//    ChipsVerticalStrips = { 7, 3, 5, 6, 1, 8  };
+//    ChipsHorizontalStrips = { 10, 11, 12, 4, 2, 9 };
   }
   else if (radioButton == this->ui->RadioButton_Camera2)
   {
     /// Camera2
-    ChipsVerticalStrips = { 8, 2, 12, 7, 1, 11 };
-    ChipsHorizontalStrips = { 10, 4, 9, 5, 3, 6 };
+    ChipsVerticalStrips = { 11, 2, 12, 1 };
+    ChipsHorizontalStrips = { 6, 3, 5, 9, 4, 10 };
     this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic02_b");
     this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic02_a");
   }
@@ -2083,6 +2020,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., 0.);
     this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
     this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);
+  }
+  for (int chipStrip = 0; chipStrip < CHANNELS_PER_CHIP * 4; ++chipStrip)
+  {
     this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
     this->getVerticalStripsGraph()->SetPointError( chipStrip, 0., 0.);
     this->getVerticalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
@@ -2119,7 +2059,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   qDebug() << Q_FUNC_INFO << pedBegin << ' ' << pedEnd << ' ' << sigBegin << ' ' << sigEnd;
 
   std::array< std::pair< int, int >, CHANNELS_PER_PLANE > HorizontalChipChannels; // for mixed channels between opposite chips
-  std::array< std::pair< int, int >, CHANNELS_PER_PLANE > VerticalChipChannels; // for mixed channels between opposite chips
+  std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 > VerticalChipChannels; // for mixed channels between opposite chips
 
   auto formChipStrip = [](const std::array< std::pair< int, int >, CHANNELS_PER_PLANE >& chipStripMask,
     std::array< std::pair< int, int >, CHANNELS_PER_PLANE >& formStripMask) {
@@ -2131,13 +2071,37 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       i++;
     }
   };
+  auto formChipStrip1 = [](const std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 >& chipStripMask,
+    std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 >& formStripMask) {
+    std::array< std::pair< int, int >, CHANNELS_PER_CHIP > chip12;
+    std::copy(chipStripMask.begin(), chipStripMask.end(), formStripMask.begin());
+
+    // save chip12
+    for (size_t i = CHANNELS_PER_CHIP * 2, j = 0; i < CHANNELS_PER_CHIP * 3; ++i)
+    {
+      chip12[j++] = chipStripMask[i];
+    }
+    // mix chip1, chip2
+    for (size_t i = 0, j = 0; i < CHANNELS_PER_CHIP; i++)
+    {
+      std::pair< int, int > chip2 = chipStripMask[CHANNELS_PER_CHIP + i];
+      std::pair< int, int > chip1 = chipStripMask[CHANNELS_PER_CHIP * 3 + i];
+      formStripMask[CHANNELS_PER_CHIP + j++] = chip1;
+      formStripMask[CHANNELS_PER_CHIP + j++] = chip2;
+    }
+    // copy chip12 to the end
+    for (size_t i = CHANNELS_PER_CHIP * 3, j = 0; i < chipStripMask.size(); ++i, ++j)
+    {
+      formStripMask[i] = chip12[j];
+    }
+  };
   // Fill mixed channels array of strip positions between opposite chips
 
 //  formChipStrip( HorizontalChipChannelStrips, HorizontalChipChannels); // horizontal
 //  formChipStrip( VerticalChipChannelStrips, VerticalChipChannels); // vertical
 
   formChipStrip( this->horizontalChipChannelStrips, HorizontalChipChannels); // horizontal
-  formChipStrip( this->verticalChipChannelStrips, VerticalChipChannels); // vertical
+  formChipStrip1( this->verticalChipChannelStrips, VerticalChipChannels); // vertical
 
   if (this->chipsAddresses.size() != static_cast< size_t >(nofChips))
   {
@@ -2165,6 +2129,10 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   std::string filename = filenameStream.str();
   std::ofstream data(filename);
 
+  for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
+  {
+    qDebug() << Q_FUNC_INFO << *iter << '\n';
+  }
   int k = 0;
   for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
   {
@@ -2307,6 +2275,15 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         return -1;
       };
 
+      auto findChipStrip1 = [chipChannel](const std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 >& chipStripMask) -> int {
+        auto iterPos = std::find(chipStripMask.begin(), chipStripMask.end(), chipChannel);
+        if (iterPos != chipStripMask.end())
+        {
+          return static_cast< int >(iterPos - chipStripMask.begin());
+        }
+        return -1;
+      };
+
       constexpr double channelStepErrorPerSideMM = 1. / std::sqrt(12.);
 
       if (std::find(std::begin(ChipsHorizontalStrips), std::end(ChipsHorizontalStrips), chipAddress + 1) != ChipsHorizontalStrips.end())
@@ -2339,11 +2316,15 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       { // Vertical strips (Horizontal profile)
         if (!this->ui->CheckBox_RawData->isChecked())
         {
-          chipStrip = findChipStrip(VerticalChipChannels);
+          chipStrip = findChipStrip1(VerticalChipChannels);
         }
         else
         {
-          chipStrip = findChipStrip(this->verticalChipChannelStrips);
+          chipStrip = findChipStrip1(this->verticalChipChannelStrips);
+        }
+        if (chipAddress == 0)
+        {
+          qDebug() << Q_FUNC_INFO << chipStrip;
         }
         this->getVerticalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
@@ -2558,7 +2539,8 @@ void MainWindow::loadICSettings()
   }
 
   std::array< int, CHANNELS_PER_CHIP > channels;
-  std::array< int, CHIPS_PER_PLANE > verticalPlaneChips, horizontalPlaneChips;
+  std::array< int, 4 > verticalPlaneChips;
+  std::array< int, CHIPS_PER_PLANE > horizontalPlaneChips;
   std::bitset< CHIPS_PER_PLANE * 2 > chipChannelsReverse;
   if (chipChannels.IsArray() && chipChannels.Size() == CHANNELS_PER_CHIP)
   {
@@ -2568,7 +2550,7 @@ void MainWindow::loadICSettings()
       channels[i] = pos;
     }
   }
-  if (verticalChips.IsArray() && verticalChips.Size() == 6)
+  if (verticalChips.IsArray() && verticalChips.Size() == 4)
   {
     for (rapidjson::SizeType i = 0; i < verticalChips.Size(); i++) // Uses SizeType instead of size_t
     {

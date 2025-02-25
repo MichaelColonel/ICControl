@@ -248,7 +248,7 @@ private:
   TGraph* calibrationGraph{ nullptr };
   std::array< QCheckBox*, CHIPS_PER_PLANE * 2 > CheckBox_DevicesEnabled;
 
-  std::array< std::pair< int, int >, CHANNELS_PER_PLANE > verticalChipChannelStrips;
+  std::array< std::pair< int, int >, CHANNELS_PER_CHIP * 4 > verticalChipChannelStrips;
   std::array< std::pair< int, int >, CHANNELS_PER_PLANE > horizontalChipChannelStrips;
   double channelStepPerSideMM = 2.;
 };
