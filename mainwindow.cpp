@@ -491,8 +491,13 @@ constexpr int ADC_WORDS_PER_CHANNEL = 2;
 constexpr int ADC_CHANNELS_PER_CHUNK = ADC_WORDS_PER_CHANNEL * CHANNELS_PER_CHIP;
 constexpr int BITS = CHAR_BIT * 2;
 
-constexpr std::array< int, CHIPS_PER_PLANE > ChipsVerticalStrips{ 7, 3, 5, 6, 1, 8  };
-constexpr std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 10, 11, 12, 4, 2, 9 };
+/// Camera1
+/// std::array< int, CHIPS_PER_PLANE > ChipsVerticalStrips{ 7, 3, 5, 6, 1, 8  };
+/// std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 10, 11, 12, 4, 2, 9 };
+
+/// Camera2
+std::array< int, CHIPS_PER_PLANE > ChipsVerticalStrips{ 8, 2, 12, 7, 1, 11 };
+std::array< int, CHIPS_PER_PLANE > ChipsHorizontalStrips{ 10, 4, 9, 5, 3, 6 };
 
 constexpr std::array< Double_t, ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP > GraphHorizontalStrips{};
 constexpr std::array< Double_t, ChipsVerticalStrips.size() * CHANNELS_PER_CHIP > GraphVerticalStrips{};
@@ -951,6 +956,8 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
       this->acquisitionPort->write(setAcquisitionCommand);
     }
 */
+    this->ui->RadioButton_Camera1->setEnabled(false);
+    this->ui->RadioButton_Camera2->setEnabled(false);
     this->initiationProgress->setLabelText("Reset ATmega128A input command buffer...");
     this->initiationProgress->setRange(0, 0);
     this->initiationProgress->setValue(0);
@@ -966,6 +973,9 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
     msgBox.setText(tr("Unable to connect device %1.\n%2.").arg(this->acquisitionPort->portName()).arg(this->acquisitionPort->errorString()));
     msgBox.exec();
     ui->statusbar->showMessage(QObject::tr("Unable to connect device"), 1000);
+
+    this->ui->RadioButton_Camera1->setEnabled(true);
+    this->ui->RadioButton_Camera2->setEnabled(true);
 
     delete this->acquisitionPort;
     this->acquisitionPort = nullptr;
@@ -1071,6 +1081,9 @@ void MainWindow::onAcquisitionDeviceDisconnectClicked()
   this->ui->PushButton_ChipReset->setEnabled(connected);
   this->ui->PushButton_InitiateDevices->setEnabled(connected);
   this->ui->PushButton_StartIterations->setEnabled(connected);
+
+  this->ui->RadioButton_Camera1->setEnabled(true);
+  this->ui->RadioButton_Camera2->setEnabled(true);
 
   this->spillTimeoutTimer->stop();
   this->ui->Label_LastSpillTimeout->setText("");
@@ -1913,9 +1926,15 @@ void MainWindow::onCameraNumberChanged(QAbstractButton* button)
   {
     this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic01_b");
     this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic01_a");
+    /// Camera1
+    ChipsVerticalStrips = { 7, 3, 5, 6, 1, 8  };
+    ChipsHorizontalStrips = { 10, 11, 12, 4, 2, 9 };
   }
   else if (radioButton == this->ui->RadioButton_Camera2)
   {
+    /// Camera2
+    ChipsVerticalStrips = { 8, 2, 12, 7, 1, 11 };
+    ChipsHorizontalStrips = { 10, 4, 9, 5, 3, 6 };
     this->ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic02_b");
     this->ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic02_a");
   }
@@ -2053,10 +2072,22 @@ void MainWindow::storeTangentData(int calcBegin, int calcEnd, double tanSideA[CH
 
 void MainWindow::onProcessSpillChannelsCountsClicked()
 {
-//  this->getHorizontalStripsGraph()->Clear();
-//  this->getVerticalStripsGraph()->Clear();
-//  this->getHorizontalCalibratedStripsGraph()->Clear();
-//  this->getVerticalCalibratedStripsGraph()->Clear();
+  this->getHorizontalStripsGraph()->Clear();
+  this->getVerticalStripsGraph()->Clear();
+  this->getHorizontalCalibratedStripsGraph()->Clear();
+  this->getVerticalCalibratedStripsGraph()->Clear();
+
+  for (int chipStrip = 0; chipStrip < CHANNELS_PER_PLANE; ++chipStrip)
+  {
+    this->getHorizontalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
+    this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., 0.);
+    this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
+    this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);
+    this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
+    this->getVerticalStripsGraph()->SetPointError( chipStrip, 0., 0.);
+    this->getVerticalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.);
+    this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);
+  }
   std::bitset< CHIPS_PER_PLANE * 2 > devices(chamberResponse.ChipsEnabledCode);
 
   int nofChips = static_cast< int >(devices.count());
@@ -2359,6 +2390,7 @@ void MainWindow::saveSettings()
   {
   case 1:
   case 2:
+    set.setValue( "camera-number", cameraNumber);
     set.setValue( "device-name", acquisitionDeviceName);
     set.setValue( "data-device-name", dataDeviceName);
     break;
@@ -2418,6 +2450,18 @@ void MainWindow::loadSettings()
   ui->LineEdit_AcquisitionDeviceName->setText(name);
   QString dataName = set.value( "data-device-name", "/dev/ft2232h_ic_a").toString();
   ui->LineEdit_DataDeviceName->setText(dataName);
+  int cameraNumber = set.value( "camera-number", 1).toInt();
+  switch (cameraNumber)
+  {
+  case 1:
+    this->ui->RadioButton_Camera1->setChecked(true);
+    break;
+  case 2:
+    this->ui->RadioButton_Camera2->setChecked(true);
+    break;
+  default:
+    break;
+  }
 
   int nofchips = set.value( "nof-chips", 24).toInt();
   ui->HorizontalSlider_Devices->setValue(nofchips);
@@ -2469,7 +2513,20 @@ void MainWindow::loadSettings()
 void MainWindow::loadICSettings()
 {
   // Load JSON descriptor file
+  int cameraNumber = this->currentCameraNumber();
   std::string jsonFileName = "ChipsPositions.json";
+  switch (cameraNumber)
+  {
+  case 1:
+    jsonFileName = "ChipsPositions1.json";
+    break;
+  case 2:
+    jsonFileName = "ChipsPositions2.json";
+    break;
+  default:
+    break;
+  }
+
   FILE *fp = fopen(jsonFileName.c_str(), "r");
   if (!fp)
   {
@@ -2628,7 +2685,7 @@ bool MainWindow::loadChipCalibration(const std::string& jsonFileName, int positi
   rapidjson::Document d1;
   if (d1.ParseStream(fs).HasParseError())
   {
-    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file";
+    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file: " << jsonFileName.c_str();;
     fclose(fp);
     return false;
   }

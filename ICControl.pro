@@ -47,6 +47,9 @@ win32 {
 #RESOURCES += ICControl.qrc
 
 DISTFILES += ChipsPositions.json \
+    ChipsPositions1.json \
+    ChipsPositions2.json \
+#   Camera1
     Chip1.2.json \
     Chip1.3.json \
     Chip1.4.json \
@@ -59,6 +62,7 @@ DISTFILES += ChipsPositions.json \
     Chip2.5.json \
     Chip2.6.json \
     Chip2.7.json \
+#   Camera2
     Chip2.8.json \
     Chip6.x.json \
     Chip1.6.json \
@@ -66,6 +70,11 @@ DISTFILES += ChipsPositions.json \
     Chip1.12.json \
     Chip1.7.json \
     Chip1.9.json \
-    Chip1.1.json
+    Chip1.1.json \
+    Chip2.9.json \
+    Chip2.3.json \ # Bad channel 25
+    Chip2.10.json \
+#   Dummy chip
+    ChipX.X.json
 
 #TRANSLATIONS += ICControl_ru.ts
