@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
+    <width>938</width>
     <height>672</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>8</number>
       </property>
       <widget class="QWidget" name="control">
        <attribute name="title">
@@ -621,6 +621,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QRadioButton" name="RadioButton_Camera1">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="text">
                <string>1</string>
               </property>
@@ -636,6 +639,9 @@
              <widget class="QRadioButton" name="RadioButton_Camera2">
               <property name="text">
                <string>2</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">ButtonGroup_SelectedCamera</string>
@@ -1768,6 +1774,35 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_7">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>2D Distribution</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_21">
+        <item row="0" column="0">
+         <widget class="QRootCanvas" name="RootCanvas_2D" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>500</width>
+            <height>500</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -1777,7 +1812,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>851</width>
+     <width>938</width>
      <height>20</height>
     </rect>
    </property>
