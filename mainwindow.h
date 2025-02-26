@@ -197,6 +197,9 @@ private:
   TPad* channelHistPad[2]{ nullptr, nullptr };
   TGraphErrors* graphFit[2]{ nullptr, nullptr };
   TPad* padFit[2]{ nullptr, nullptr };
+  TCanvas* pseudo2DCanvas{ nullptr };
+  TPad* pseudo2DPad{ nullptr };
+  TH2* hist2D{ nullptr };
   TFile* rootFile{ nullptr };
   QString rootFileName;
   std::map< int, std::array< std::vector< int >, CHANNELS_PER_CHIP > > channelsCountsA, channelsCountsB;

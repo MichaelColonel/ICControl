@@ -691,6 +691,20 @@ MainWindow::MainWindow(QWidget *parent)
   this->calibrationGraph->SetTitle("Counts;Offset (mV);Calibration");
   this->calibrationGraph->Draw("AL*");
 
+  // Pseudo 2D Histogram
+  this->pseudo2DCanvas = this->ui->RootCanvas_2D->getCanvas();
+  this->pseudo2DCanvas->cd();
+  this->pseudo2DPad = new TPad("padPseudo2D", "Grid", 0., 0., 1., 1.);
+  this->pseudo2DPad->Draw();
+  this->pseudo2DPad->SetGrid();
+  this->pseudo2DPad->cd();
+  this->hist2D = new TH2F( "hist2D", "Pseudo 2D Distribution",
+    4 * CHANNELS_PER_CHIP, 0., double(4 * CHANNELS_PER_CHIP),
+    6 * CHANNELS_PER_CHIP, 0., double(6 * CHANNELS_PER_CHIP));
+  this->hist2D->Draw("COLZ");
+  this->hist2D->GetXaxis()->SetTitle("Horizontal strips");
+  this->hist2D->GetYaxis()->SetTitle("Vertical strips");
+
   connect( ui->PushButton_AcquisitionConnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceConnectClicked()));
   connect( ui->PushButton_AcquisitionDisconnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceDisconnectClicked()));
   connect( ui->PushButton_AgilentConnect, SIGNAL(clicked()), this, SLOT(onAgilentDeviceConnectClicked()));
@@ -817,6 +831,11 @@ MainWindow::~MainWindow()
   this->calibrationGraph = nullptr;
   delete this->calibrationPad;
   this->calibrationPad = nullptr;
+
+  delete this->hist2D;
+  this->hist2D = nullptr;
+  delete this->pseudo2DPad;
+  this->pseudo2DPad = nullptr;
 
   delete ui;
 }
@@ -2129,10 +2148,6 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   std::string filename = filenameStream.str();
   std::ofstream data(filename);
 
-  for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
-  {
-    qDebug() << Q_FUNC_INFO << *iter << '\n';
-  }
   int k = 0;
   for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
   {
@@ -2301,6 +2316,11 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(dispSigA));
         this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
         this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
+        if ((this->ui->CheckBox_RawData->isChecked() && chipStrip == 36) || (!this->ui->CheckBox_RawData->isChecked() && chipStrip == 73))
+        {
+          this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), 0.0);
+          this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);
+        }
         Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate X of the strip
         Double_t x_err = (this->channelStepPerSideMM / 2.) * channelStepErrorPerSideMM;
         if (this->ui->CheckBox_RawData->isChecked())
@@ -2321,10 +2341,6 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         else
         {
           chipStrip = findChipStrip1(this->verticalChipChannelStrips);
-        }
-        if (chipAddress == 0)
-        {
-          qDebug() << Q_FUNC_INFO << chipStrip;
         }
         this->getVerticalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
@@ -2347,6 +2363,18 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   }
   data.close();
 
+  for (Int_t horizStrips = 0; horizStrips < CHANNELS_PER_PLANE; ++horizStrips)
+  {
+    for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_CHIP * 4; ++vertStrips)
+    {
+      Double_t xV, yV, xH, yH;
+      Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
+      pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
+      this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
+      Q_UNUSED(pos);
+    }
+  }
+
   this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
   this->hist2Pad[ORIENTATION_VERTICAL]->Update();
   this->graphPad[ORIENTATION_VERTICAL]->Modified();
@@ -2359,6 +2387,8 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   this->padFit[ORIENTATION_VERTICAL]->Update();
   this->padFit[ORIENTATION_HORIZONTAL]->Modified();
   this->padFit[ORIENTATION_HORIZONTAL]->Update();
+  this->pseudo2DPad->Modified();
+  this->pseudo2DPad->Update();
 }
 
 void MainWindow::saveSettings()
