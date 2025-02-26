@@ -2461,6 +2461,7 @@ void MainWindow::loadSettings()
   ui->LineEdit_AcquisitionDeviceName->setText(name);
   QString dataName = set.value( "data-device-name", "/dev/ft2232h_ic_a").toString();
   ui->LineEdit_DataDeviceName->setText(dataName);
+/*
   int cameraNumber = set.value( "camera-number", 1).toInt();
   switch (cameraNumber)
   {
@@ -2477,6 +2478,10 @@ void MainWindow::loadSettings()
   default:
     break;
   }
+*/
+  this->ui->RadioButton_Camera2->setChecked(true);
+  ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic02_b");
+  ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic02_a");
 
   int nofchips = set.value( "nof-chips", 24).toInt();
   ui->HorizontalSlider_Devices->setValue(nofchips);
