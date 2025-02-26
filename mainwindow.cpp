@@ -2466,9 +2466,13 @@ void MainWindow::loadSettings()
   {
   case 1:
     this->ui->RadioButton_Camera1->setChecked(true);
+    ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic01_b");
+    ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic01_a");
     break;
   case 2:
     this->ui->RadioButton_Camera2->setChecked(true);
+    ui->LineEdit_AcquisitionDeviceName->setText("/dev/ft2232h_ic02_b");
+    ui->LineEdit_DataDeviceName->setText("/dev/ft2232h_ic02_a");
     break;
   default:
     break;
