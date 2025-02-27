@@ -451,8 +451,58 @@ std::array< Double_t, N > GenerateStripsNumbers(int init = 1) {
   return v;
 }
 
+template< size_t N >
+std::array< Double_t, N > GenerateVerticalStripsBinsBordersRaw()
+{
+  std::array< Double_t, N > v;
+  v[0] = 0.;
+  for (size_t i = 1; i < v.size(); ++i)
+  {
+    v[i] = v[i - 1] + 2.;
+  }
+  return v;
+}
+
+template< size_t N >
+std::array< Double_t, N > GenerateVerticalStripsBinsBordersCorrect()
+{
+  std::array< Double_t, N > v;
+  v[0] = 0.0;
+  for (size_t i = 1; i < CHANNELS_PER_CHIP; ++i)
+  {
+    v[i] = v[i - 1] + 2.; // 2 mm step
+  }
+  for (size_t i = CHANNELS_PER_CHIP; i < 3 * CHANNELS_PER_CHIP; ++i)
+  {
+    v[i] = v[i - 1] + 1.; // 1 mm step
+  }
+  for (size_t i = 3 * CHANNELS_PER_CHIP; i < v.size(); ++i)
+  {
+    v[i] = v[i - 1] + 2.; // 2 mm step
+  }
+  return v;
+}
+
+template< size_t N >
+std::array< Double_t, N > GenerateHorizontalStripsBinsBordersCorrect()
+{
+  std::array< Double_t, N > v;
+  v[0] = 0.0;
+  for (size_t i = 1; i < v.size(); ++i)
+  {
+    v[i] = v[i - 1] + 1.;
+  }
+  return v;
+}
+
 const std::array< Double_t, GraphHorizontalStrips.size() > GraphHorizontalStripsNumbers = GenerateStripsNumbers< GraphHorizontalStrips.size() >();
 const std::array< Double_t, GraphVerticalStrips.size() > GraphVerticalStripsNumbers = GenerateStripsNumbers< GraphVerticalStrips.size() >();
+
+const std::array< Double_t, CHANNELS_PER_CHIP * 4 + 1 > VerticalStripsBinsCorrect = GenerateVerticalStripsBinsBordersCorrect< CHANNELS_PER_CHIP * 4 + 1 >();
+const std::array< Double_t, CHANNELS_PER_CHIP * 4 + 1 > VerticalStripsBinsRaw = GenerateVerticalStripsBinsBordersRaw< CHANNELS_PER_CHIP * 4 + 1 >();
+
+const std::array< Double_t, CHANNELS_PER_PLANE > HorizontalStripsBinsCorrect = GenerateHorizontalStripsBinsBordersCorrect< CHANNELS_PER_PLANE >();
+const std::array< Double_t, CHANNELS_PER_PLANE > HorizontalStripsBinsRaw = GenerateVerticalStripsBinsBordersRaw< CHANNELS_PER_PLANE >();
 
 const QByteArray FirstContactCommand( 1, 'A');
 const QByteArray SingleShotCommand( "S\0\0", BUFFER_SIZE);
@@ -553,7 +603,8 @@ MainWindow::MainWindow(QWidget *parent)
   this->getHorizontalStripsHist()->Draw("COLZ");
   this->getHorizontalStripsHist()->GetXaxis()->SetTitle("Strips");
 //  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Integrals per spill");
-  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+//  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean signal ADC counts");
 
   this->getVerticalStripsCanvas()->cd(1);
   this->hist2Pad[StripsOrientationType::ORIENTATION_VERTICAL] = dynamic_cast<TPad*>(this->getVerticalStripsCanvas()->GetPad(1));
@@ -563,11 +614,12 @@ MainWindow::MainWindow(QWidget *parent)
   this->getVerticalStripsHist()->Draw("COLZ");
   this->getVerticalStripsHist()->GetXaxis()->SetTitle("Strips");
 //  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Integrals per spill");
-  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+//  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean signal ADC counts");
 
   constexpr Color_t colors[2] = { kBlack, kRed };
-  this->multiGraphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TMultiGraph( "mgHoriz", "Horizontal Strips (Vertical profile);Strips;Spill integral");
-  this->multiGraphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TMultiGraph( "mgVert", "Vertical Strips (Horizontal profile);Strips;Spill integral");
+  this->multiGraphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TMultiGraph( "mgHoriz", "Horizontal Strips (Vertical profile);Strips;Mean signal, ADC counts");
+  this->multiGraphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TMultiGraph( "mgVert", "Vertical Strips (Horizontal profile);Strips;Mean signal, ADC counts");
   this->graphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TGraphErrors(ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP, GraphHorizontalStripsNumbers.data(), GraphHorizontalStrips.data());
   this->graphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TGraphErrors(ChipsVerticalStrips.size() * CHANNELS_PER_CHIP, GraphVerticalStripsNumbers.data(), GraphVerticalStrips.data());
   this->graphStripsCalibrated[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TGraphErrors(ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP, GraphHorizontalStripsNumbers.data(), GraphHorizontalStrips.data());
@@ -698,9 +750,19 @@ MainWindow::MainWindow(QWidget *parent)
   this->pseudo2DPad->Draw();
   this->pseudo2DPad->SetGrid();
   this->pseudo2DPad->cd();
+/*
   this->hist2D = new TH2F( "hist2D", "Pseudo 2D Distribution",
     4 * CHANNELS_PER_CHIP, 0., double(4 * CHANNELS_PER_CHIP),
     6 * CHANNELS_PER_CHIP, 0., double(6 * CHANNELS_PER_CHIP));
+*/
+  const int xBins = CHANNELS_PER_CHIP * 4;
+  const Double_t* xBinsBorders = VerticalStripsBinsCorrect.data();
+  for (size_t i = 0; i < VerticalStripsBinsCorrect.size(); ++i)
+  {
+    qDebug() << Q_FUNC_INFO << i << ' ' << VerticalStripsBinsCorrect[i];
+  }
+  this->hist2D = new TH2F( "hist2D", "Pseudo 2D Distribution", xBins, xBinsBorders, 6 * CHANNELS_PER_CHIP, 0., double(6 * CHANNELS_PER_CHIP));
+
   this->hist2D->Draw("COLZ");
   this->hist2D->GetXaxis()->SetTitle("Horizontal strips");
   this->hist2D->GetYaxis()->SetTitle("Vertical strips");
@@ -2049,6 +2111,19 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   }
   std::bitset< CHIPS_PER_PLANE * 2 > devices(chamberResponse.ChipsEnabledCode);
 
+  const int xBins = CHANNELS_PER_CHIP * 4;
+//  this->hist2D->Reset();
+  if (this->ui->CheckBox_RawData->isChecked())
+  {
+    const Double_t* xBinsBorders = VerticalStripsBinsRaw.data();
+    this->hist2D->SetBins(xBins, xBinsBorders);
+  }
+  else
+  {
+    const Double_t* xBinsBorders = VerticalStripsBinsCorrect.data();
+    this->hist2D->SetBins(xBins, xBinsBorders);
+  }
+
   int nofChips = static_cast< int >(devices.count());
   this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   qDebug() << Q_FUNC_INFO << "Number of chips: " << nofChips;
@@ -2211,12 +2286,12 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       infoCalib.sigMom2A = boost::accumulators::moment< 2 >(statCalibSigA);
       infoCalib.sigMom2B = boost::accumulators::moment< 2 >(statCalibSigB);
 
-      double signalA = info.sigSumA - info.sigCountA * info.pedMeanA;
-      double signalB = info.sigSumB - info.sigCountB * info.pedMeanB;
+      double signalA = (info.sigSumA - info.sigCountA * info.pedMeanA) / info.sigCountA;
+      double signalB = (info.sigSumB - info.sigCountB * info.pedMeanB) / info.sigCountB;
       double channelSignal = (signalA + signalB) / 2.;
 
-      double calibSignalA = infoCalib.sigSumA - infoCalib.sigCountA * infoCalib.pedMeanA;
-      double calibSignalB = infoCalib.sigSumB - infoCalib.sigCountB * infoCalib.pedMeanB;
+      double calibSignalA = (infoCalib.sigSumA - infoCalib.sigCountA * infoCalib.pedMeanA) / infoCalib.sigCountA;
+      double calibSignalB = (infoCalib.sigSumB - infoCalib.sigCountB * infoCalib.pedMeanB) / infoCalib.sigCountB;
       double calibChannelSignal = refAmpl * (calibSignalA + calibSignalB) / (2. * currAmpl);
       double calibDispSigA = infoCalib.sigMom2A - infoCalib.sigMeanA * infoCalib.sigMeanA;
 
