@@ -1467,7 +1467,32 @@ void MainWindow::onProcessRawDataClicked()
 
   std::ofstream file("data.txt");
   const QByteArray& arr = this->acquisitionDataBuffer;
-  for (int i = 0; i < arr.size(); i += 4)
+  std::array< int, 4 > findData{ 0 , 0 , 0 , 0 };
+  for (int i = 0; i < arr.size() - 4; i += 4)
+  {
+    std::bitset< CHAR_BIT > d0(arr.at(i)), d1(arr.at(i + 1)), d2(arr.at(i + 2)), d3(arr.at(i + 3));
+    if (!d0.test(7) && d0.test(0))
+    {
+      findData[0] += 1;
+    }
+    if (!d1.test(7) && d1.test(0))
+    {
+      findData[1] += 1;
+    }
+    if (!d2.test(7) && d2.test(0))
+    {
+      findData[2] += 1;
+    }
+    if (!d3.test(7) && d3.test(0))
+    {
+      findData[3] += 1;
+    }
+  }
+  std::array< int, 4 >::iterator findDataIter = std::max_element( findData.begin(), findData.end());
+  int offset = findDataIter - findData.begin();
+  qDebug() << "FindData: " << findData[0] << ' ' << findData[1] << ' ' << findData[2] << ' ' << findData[3] << ' ' << offset;
+
+  for (int i = offset; i < arr.size() - 4; i += 4)
   {
     std::bitset< CHAR_BIT > d0(arr.at(i)), d1(arr.at(i + 1)), d2(arr.at(i + 2)), d3(arr.at(i + 3));
     file << d0.to_string() << ' ' << d1.to_string() << ' ' << d2.to_string() << ' ' << d3.to_string() << '\n';
@@ -1477,7 +1502,7 @@ void MainWindow::onProcessRawDataClicked()
   constexpr int SIDE_BIT = 6;
   constexpr int CHIP_BITS = 4;
   this->chipsAddresses.clear();
-  for (int i = 0; i < arr.size(); i += 4)
+  for (int i = offset; i < arr.size(); i += 4)
   {
     std::bitset< CHAR_BIT > d0(arr.at(i)), d1(arr.at(i + 1)), d2(arr.at(i + 2)), d3(arr.at(i + 3));
     ReverseBits< CHAR_BIT >(d0);
