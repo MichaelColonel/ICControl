@@ -611,7 +611,8 @@ MainWindow::MainWindow(QWidget *parent)
   this->getHorizontalStripsHist()->Draw("COLZ");
   this->getHorizontalStripsHist()->GetXaxis()->SetTitle("Strips");
 //  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Integrals per spill");
-  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+//  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+  this->getHorizontalStripsHist()->GetYaxis()->SetTitle("Mean signal, ADC counts");
 
   this->getVerticalStripsCanvas()->cd(1);
   this->hist2Pad[StripsOrientationType::ORIENTATION_VERTICAL] = dynamic_cast<TPad*>(this->getVerticalStripsCanvas()->GetPad(1));
@@ -621,11 +622,12 @@ MainWindow::MainWindow(QWidget *parent)
   this->getVerticalStripsHist()->Draw("COLZ");
   this->getVerticalStripsHist()->GetXaxis()->SetTitle("Strips");
 //  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Integrals per spill");
-  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+//  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
+  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean signal, ADC counts");
 
   constexpr Color_t colors[2] = { kBlack, kRed };
-  this->multiGraphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TMultiGraph( "mgHoriz", "Horizontal Strips (Vertical profile);Strips;Spill integral");
-  this->multiGraphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TMultiGraph( "mgVert", "Vertical Strips (Horizontal profile);Strips;Spill integral");
+  this->multiGraphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TMultiGraph( "mgHoriz", "Horizontal Strips (Vertical profile);Strips;Mean signal, ADC counts");
+  this->multiGraphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TMultiGraph( "mgVert", "Vertical Strips (Horizontal profile);Strips;Mean signal, ADC counts");
   this->graphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TGraphErrors(ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP, GraphHorizontalStripsNumbers.data(), GraphHorizontalStrips.data());
   this->graphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TGraphErrors(ChipsVerticalStrips.size() * CHANNELS_PER_CHIP, GraphVerticalStripsNumbers.data(), GraphVerticalStrips.data());
   this->graphStripsCalibrated[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TGraphErrors(ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP, GraphHorizontalStripsNumbers.data(), GraphHorizontalStrips.data());
@@ -2241,12 +2243,12 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       infoCalib.sigMom2A = boost::accumulators::moment< 2 >(statCalibSigA);
       infoCalib.sigMom2B = boost::accumulators::moment< 2 >(statCalibSigB);
 
-      double signalA = info.sigSumA - info.sigCountA * info.pedMeanA;
-      double signalB = info.sigSumB - info.sigCountB * info.pedMeanB;
+      double signalA = (info.sigSumA - info.sigCountA * info.pedMeanA) / info.sigCountA;
+      double signalB = (info.sigSumB - info.sigCountB * info.pedMeanB) / info.sigCountB;
       double channelSignal = (signalA + signalB) / 2.;
 
-      double calibSignalA = infoCalib.sigSumA - infoCalib.sigCountA * infoCalib.pedMeanA;
-      double calibSignalB = infoCalib.sigSumB - infoCalib.sigCountB * infoCalib.pedMeanB;
+      double calibSignalA = (infoCalib.sigSumA - infoCalib.sigCountA * infoCalib.pedMeanA) / info.sigCountA;
+      double calibSignalB = (infoCalib.sigSumB - infoCalib.sigCountB * infoCalib.pedMeanB) / info.sigCountB;
       double calibChannelSignal = refAmpl * (calibSignalA + calibSignalB) / (2. * currAmpl);
       double calibDispSigA = infoCalib.sigMom2A - infoCalib.sigMeanA * infoCalib.sigMeanA;
 
