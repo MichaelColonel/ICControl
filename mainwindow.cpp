@@ -762,8 +762,8 @@ MainWindow::MainWindow(QWidget *parent)
     CHANNELS_PER_PLANE, 0., double(CHANNELS_PER_PLANE),
     CHANNELS_PER_PLANE, 0., double(CHANNELS_PER_PLANE));
   this->hist2D->Draw("COLZ");
-  this->hist2D->GetXaxis()->SetTitle("Horizontal strips");
-  this->hist2D->GetYaxis()->SetTitle("Vertical strips");
+  this->hist2D->GetXaxis()->SetTitle("Horizontal strips, mm");
+  this->hist2D->GetYaxis()->SetTitle("Vertical strips, mm");
 
   connect( ui->PushButton_AcquisitionConnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceConnectClicked()));
   connect( ui->PushButton_AcquisitionDisconnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceDisconnectClicked()));
@@ -2546,7 +2546,20 @@ void MainWindow::loadSettings()
 void MainWindow::loadICSettings()
 {
   // Load JSON descriptor file
+  int cameraNumber = this->currentCameraNumber();
   std::string jsonFileName = "ChipsPositions.json";
+  switch (cameraNumber)
+  {
+  case 1:
+    jsonFileName = "ChipsPositions1.json";
+    break;
+  case 2:
+    jsonFileName = "ChipsPositions2.json";
+    break;
+  default:
+    break;
+  }
+
   FILE *fp = fopen(jsonFileName.c_str(), "r");
   if (!fp)
   {
