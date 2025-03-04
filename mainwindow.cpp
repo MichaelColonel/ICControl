@@ -757,15 +757,11 @@ MainWindow::MainWindow(QWidget *parent)
 */
   const int xBins = CHANNELS_PER_CHIP * 4;
   const Double_t* xBinsBorders = VerticalStripsBinsCorrect.data();
-  for (size_t i = 0; i < VerticalStripsBinsCorrect.size(); ++i)
-  {
-    qDebug() << Q_FUNC_INFO << i << ' ' << VerticalStripsBinsCorrect[i];
-  }
-  this->hist2D = new TH2F( "hist2D", "Pseudo 2D Distribution", xBins, xBinsBorders, 6 * CHANNELS_PER_CHIP, 0., double(6 * CHANNELS_PER_CHIP));
+  this->hist2D = new TH2F( "hist2D", "Pseudo 2D Distribution", xBins, xBinsBorders, CHANNELS_PER_PLANE, 0., double(CHANNELS_PER_PLANE));
 
   this->hist2D->Draw("COLZ");
-  this->hist2D->GetXaxis()->SetTitle("Horizontal strips");
-  this->hist2D->GetYaxis()->SetTitle("Vertical strips");
+  this->hist2D->GetXaxis()->SetTitle("Vertical strips, mm");
+  this->hist2D->GetYaxis()->SetTitle("Horizontal strips, mm");
 
   connect( ui->PushButton_AcquisitionConnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceConnectClicked()));
   connect( ui->PushButton_AcquisitionDisconnect, SIGNAL(clicked()), this, SLOT(onAcquisitionDeviceDisconnectClicked()));
@@ -2135,20 +2131,23 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);
   }
   std::bitset< CHIPS_PER_PLANE * 2 > devices(chamberResponse.ChipsEnabledCode);
-
+/*
   const int xBins = CHANNELS_PER_CHIP * 4;
-//  this->hist2D->Reset();
+  const int yBins = CHANNELS_PER_PLANE;
+  this->hist2D->Reset();
   if (this->ui->CheckBox_RawData->isChecked())
   {
     const Double_t* xBinsBorders = VerticalStripsBinsRaw.data();
-    this->hist2D->SetBins(xBins, xBinsBorders);
+    const Double_t* yBinsBorders = HorizontalStripsBinsRaw.data();
+    this->hist2D->SetBins(xBins, xBinsBorders, yBins, yBinsBorders);
   }
   else
   {
     const Double_t* xBinsBorders = VerticalStripsBinsCorrect.data();
-    this->hist2D->SetBins(xBins, xBinsBorders);
+    const Double_t* yBinsBorders = HorizontalStripsBinsCorrect.data();
+    this->hist2D->SetBins(xBins, xBinsBorders, yBins, yBinsBorders);
   }
-
+*/
   int nofChips = static_cast< int >(devices.count());
   this->ui->TableWidget_ChannelPedSignalInfo->setRowCount(nofChips * CHANNELS_PER_CHIP);
   qDebug() << Q_FUNC_INFO << "Number of chips: " << nofChips;
@@ -2470,6 +2469,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       Double_t xV, yV, xH, yH;
       Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
       pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
+
       this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
       Q_UNUSED(pos);
     }
