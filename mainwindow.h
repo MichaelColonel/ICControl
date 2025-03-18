@@ -32,6 +32,7 @@ class QAbstractButton;
 class QDataTime;
 class QProgressDialog;
 class QCheckBox;
+class QListWidgetItem;
 
 class TFile;
 class TTree;
@@ -129,6 +130,7 @@ private slots:
   void onOpenRootFileClicked();
   void onProcessSelectedItemsClicked();
   void onClearSpillListClicked();
+  void onCurrentSpillItemChanged(QListWidgetItem*,QListWidgetItem*);
   void onPedestalsBeginClicked(int);
   void onPedestalsEndClicked(int);
   void onSignalBeginClicked(int);

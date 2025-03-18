@@ -17,14 +17,8 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="currentIndex">
-       <number>8</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="control">
        <attribute name="title">
@@ -628,13 +622,13 @@
             <item>
              <widget class="QRadioButton" name="RadioButton_Camera1">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="text">
                <string>1</string>
               </property>
               <property name="checked">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">ButtonGroup_SelectedCamera</string>
@@ -647,7 +641,7 @@
                <string>2</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">ButtonGroup_SelectedCamera</string>
@@ -1558,10 +1552,31 @@
           <layout class="QGridLayout" name="gridLayout_17">
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_7">
-             <item row="0" column="1">
-              <widget class="QPushButton" name="PushButton_OpenFile">
+             <item row="0" column="0" rowspan="3">
+              <widget class="QListWidget" name="ListWidget_Spills">
+               <property name="selectionMode">
+                <enum>QAbstractItemView::ExtendedSelection</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="PushButton_Calibrate">
                <property name="text">
-                <string>Open file...</string>
+                <string>Calibrate</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="Label_Capacity">
+               <property name="text">
+                <string>Capacity:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="Label_IntegrationTime">
+               <property name="text">
+                <string>Integration time:</string>
                </property>
               </widget>
              </item>
@@ -1578,17 +1593,10 @@
                </property>
               </spacer>
              </item>
-             <item row="4" column="1">
-              <widget class="QPushButton" name="PushButton_ProcessSpills">
+             <item row="3" column="1">
+              <widget class="QPushButton" name="PushButton_ClearList">
                <property name="text">
-                <string>Process spills</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QPushButton" name="PushButton_Calibrate">
-               <property name="text">
-                <string>Calibrate</string>
+                <string>Clear</string>
                </property>
               </widget>
              </item>
@@ -1605,17 +1613,30 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="0" rowspan="3">
-              <widget class="QListWidget" name="ListWidget_Spills">
-               <property name="selectionMode">
-                <enum>QAbstractItemView::ExtendedSelection</enum>
+             <item row="7" column="0">
+              <widget class="QLabel" name="Label_ActiveChips">
+               <property name="text">
+                <string>Active chips:</string>
                </property>
               </widget>
              </item>
-             <item row="3" column="1">
-              <widget class="QPushButton" name="PushButton_ClearList">
+             <item row="0" column="1">
+              <widget class="QPushButton" name="PushButton_OpenFile">
                <property name="text">
-                <string>Clear</string>
+                <string>Open file...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1" rowspan="5">
+              <widget class="QPushButton" name="PushButton_ProcessSpills">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Process spills</string>
                </property>
               </widget>
              </item>
@@ -2301,7 +2322,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="ButtonGroup_AdcMode"/>
   <buttongroup name="ButtonGroup_SelectedCamera"/>
+  <buttongroup name="ButtonGroup_AdcMode"/>
  </buttongroups>
 </ui>

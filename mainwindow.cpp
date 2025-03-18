@@ -809,6 +809,8 @@ MainWindow::MainWindow(QWidget *parent)
   connect( ui->ButtonGroup_AdcMode, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(onAcquisitionAdcModeResolutionChanged(QAbstractButton*)));
   connect( ui->ButtonGroup_SelectedCamera, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(onCameraNumberChanged(QAbstractButton*)));
 
+  connect( ui->ListWidget_Spills, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(onCurrentSpillItemChanged(QListWidgetItem*,QListWidgetItem*)));
+
   connect( timer, SIGNAL(timeout()), this, SLOT(onRootEventsTimeout())); // iterate ROOT events
   connect( spillTimeoutTimer, SIGNAL(timeout()), this, SLOT(onSpillTimeout())); // iterate spill timeout
   connect( initiationTimer, SIGNAL(timeout()), this, SLOT(onFirstConnectResponce())); // first responce timeout
@@ -1176,6 +1178,11 @@ void MainWindow::acquisitionSerialPortDataReady()
           return;
       }
       break;
+    case 'C':
+      chamberResponse.CapacityCode = data[1] - '0';
+      qDebug() << Q_FUNC_INFO << "Set chip capacity command response: " << chamberResponse.CapacityCode;
+      this->ui->statusbar->showMessage( tr("Capacity code is %2").arg(chamberResponse.CapacityCode), 3000);
+      break;
     case 'D':
       chamberResponse.AdcMode = (data[1] - '0') ? 20 : 16;
       qDebug() << Q_FUNC_INFO << "ADC resolution command response: " << chamberResponse.AdcMode;
@@ -1226,7 +1233,7 @@ void MainWindow::acquisitionSerialPortDataReady()
     }
     return;
   }
-
+/*
   if (this->acquisitionResponseBuffer.startsWith('C') && this->acquisitionResponseBuffer.size() == 4 && this->checkLastCommandWrittenAndRespose())
   {
     qDebug() << Q_FUNC_INFO << this->acquisitionResponseBuffer;
@@ -1260,7 +1267,7 @@ void MainWindow::acquisitionSerialPortDataReady()
     }
     return;
   }
-
+*/
   if (this->acquisitionResponseBuffer.size() == 3 && this->checkLastCommandWrittenAndRespose())
   {
     qDebug() << Q_FUNC_INFO << this->acquisitionResponseBuffer;
@@ -3366,6 +3373,68 @@ void MainWindow::onProcessSelectedItemsClicked()
   this->padFit[ORIENTATION_VERTICAL]->Update();
   this->padFit[ORIENTATION_HORIZONTAL]->Modified();
   this->padFit[ORIENTATION_HORIZONTAL]->Update();
+}
+
+void MainWindow::onCurrentSpillItemChanged(QListWidgetItem* newItem,QListWidgetItem*)
+{
+  if (rootFileName.isEmpty())
+  {
+    return;
+  }
+  if (!newItem)
+  {
+    return;
+  }
+
+  std::string rootStdName = rootFileName.toStdString();
+  TFile* f = TFile::Open(rootStdName.c_str());
+
+  ui->Label_NumberOfSpills->setText("1");
+
+  struct ChamberResponse tmpResponse;
+
+  QString treeName = newItem->text();
+  std::string treeStdName = treeName.toStdString();
+  TTree* spillTree = dynamic_cast< TTree* >(f->Get(treeStdName.c_str()));
+  unsigned int mode = 0;
+  int dataBits = 16;
+  if (spillTree)
+  {
+    spillTree->SetBranchAddress("respChipsEnabledCode", &tmpResponse.ChipsEnabledCode);
+    spillTree->SetBranchAddress("respIntTime", &tmpResponse.IntegrationTimeCode);
+    spillTree->SetBranchAddress("respCapacity", &tmpResponse.CapacityCode);
+    spillTree->SetBranchAddress("respExtStart", &tmpResponse.ExternalStartState);
+    spillTree->SetBranchAddress("respAdcMode", &tmpResponse.AdcMode);
+    spillTree->SetBranchAddress("mode", &mode);
+    spillTree->SetBranchAddress("adcMode", &dataBits);
+
+    Int_t nentries = static_cast<Int_t>(spillTree->GetEntries());
+
+    for (Int_t i = 0; i < nentries; i++)
+    {
+      spillTree->GetEntry(i);
+      {
+        switch (tmpResponse.AdcMode)
+        {
+        case 16:
+          break;
+        case 20:
+          break;
+        default:
+          break;
+        }
+
+        int intTime = mode & 0x0F;
+        int capCode = mode >> 4;
+        qDebug() << Q_FUNC_INFO << "capCode: " << capCode << ", respCapacity: " << tmpResponse.CapacityCode << '\n' \
+                 << "intTime: " << intTime << ", respIntTime: " << tmpResponse.IntegrationTimeCode;
+        ui->Label_IntegrationTime->setText(tr("Integration time: %1 ms").arg((intTime + 1) * 2));
+        ui->Label_Capacity->setText(tr("Capacity: %1 pF").arg(CapacityCoefficient[capCode]));
+        ui->Label_ActiveChips->setText(tr("Active chips: %1").arg(std::bitset<12>(tmpResponse.ChipsEnabledCode).count()));
+      }
+    }
+  }
+  f->Close();
 }
 
 void MainWindow::onClearSpillListClicked()
