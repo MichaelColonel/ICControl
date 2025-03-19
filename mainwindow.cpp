@@ -3255,14 +3255,15 @@ void MainWindow::onProcessSelectedItemsClicked()
           if (integrationTimeCode == tmpResponse.IntegrationTimeCode)
           {
             this->ui->HorizontalSlider_IntegrationTime->setValue((integrationTimeCode + 1) * 2);
+            qDebug() << Q_FUNC_INFO << "Integration time: " << (integrationTimeCode + 1) * 2 << " ms";
           }
           if (capacityCode == tmpResponse.CapacityCode)
           {
             this->ui->ComboBox_AcquisitionCapacity->setCurrentIndex(capacityCode);
+            qDebug() << Q_FUNC_INFO << "Capacity: " << CapacityCoefficient[capacityCode] << " pF";
           }
           this->ui->CheckBox_ExternalStart->setChecked(tmpResponse.ExternalStartState);
 
-          qDebug() << Q_FUNC_INFO << "Item name: " << item->text();
           this->onProcessRawDataClicked();
           if (this->chipsAddresses.size() == size_t(tmpResponse.ChipsEnabled))
           {
