@@ -22,6 +22,8 @@
 #include <TH2F.h>
 #include <TLine.h>
 #include <TMultiGraph.h>
+#include <TServerSocket.h>
+#include <TMessage.h>
 
 #include <iomanip>
 #include <fstream>
@@ -3923,4 +3925,21 @@ void MainWindow::onTangentCalculationClicked()
     this->storeCalibrationData( offset, sideA, sideB);
   }
   this->storeTangentData(calcBegin, calcEnd, tanSideA, tanSideB);
+}
+
+void MainWindow::sendCameraProfiles()
+{
+  TServerSocket* servSocket = new TServerSocket(9090, kTRUE);
+  TSocket* socket = servSocket->Accept();
+  TMessage msg1(kMESS_OBJECT);
+  msg1.WriteObject(this->hist2D);
+  TMessage msg2(kMESS_OBJECT);
+  msg2.WriteObject(this->getHorizontalCalibratedStripsGraph());
+  TMessage msg3(kMESS_OBJECT);
+  msg3.WriteObject(this->getVerticalCalibratedStripsGraph());
+  socket->Send(msg1);
+  socket->Send(msg2);
+  socket->Send(msg3);
+  socket->Close();
+  delete servSocket;
 }

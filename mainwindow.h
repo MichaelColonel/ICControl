@@ -149,6 +149,7 @@ private:
   void storeSpillData(const QDateTime& timeStamp);
   void storeCalibrationData(int offset, const std::vector<int>& sideA, const std::vector<int>& sideB);
   void storeTangentData( int calcBegin, int calcEnd, double tanSideA[CHANNELS_PER_CHIP], double tanSideB[CHANNELS_PER_CHIP]);
+  void sendCameraProfiles();
 
   bool fitSpillData(std::ofstream& ofs, const std::map< int, double >& horizProfile, const std::map< int, double >& vertProfile);
   unsigned short devicesEnabled() const;
