@@ -3016,23 +3016,29 @@ void MainWindow::onUpdateChannelGraphClicked()
   if (!this->ui->CheckBox_RawData->isChecked())
   {
     Double_t max = 0, min = 0;
+    int v = this->ui->SpinBox_PedBegin->value();
+    this->ui->SpinBox_PedBegin->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->SpinBox_PedBegin->setValue(v);
+    this->ui->HorizontalSlider_PedBegin->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->HorizontalSlider_PedBegin->setValue(v);
 
-    this->ui->SpinBox_PedBegin->setMinimum(intTimeMs);
-    this->ui->SpinBox_PedEnd->setMinimum(intTimeMs);
-    this->ui->SpinBox_SignalBegin->setMinimum(intTimeMs);
-    this->ui->SpinBox_SignalEnd->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_PedBegin->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_PedEnd->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_SignalBegin->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_SignalEnd->setMinimum(intTimeMs);
-    this->ui->SpinBox_PedBegin->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->SpinBox_PedEnd->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->SpinBox_SignalBegin->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->SpinBox_SignalEnd->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->HorizontalSlider_PedBegin->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->HorizontalSlider_PedEnd->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->HorizontalSlider_SignalBegin->setMaximum(intTimeMs * 2 * sizeHalfPos);
-    this->ui->HorizontalSlider_SignalEnd->setMaximum(intTimeMs * 2 * sizeHalfPos);
+    v = this->ui->SpinBox_PedEnd->value();
+    this->ui->SpinBox_PedEnd->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->HorizontalSlider_PedEnd->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->SpinBox_PedEnd->setValue(v);
+    this->ui->HorizontalSlider_PedEnd->setValue(v);
+
+    v = this->ui->SpinBox_SignalBegin->value();
+    this->ui->SpinBox_SignalBegin->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->HorizontalSlider_SignalBegin->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->SpinBox_SignalBegin->setValue(v);
+    this->ui->HorizontalSlider_SignalBegin->setValue(v);
+
+    v = this->ui->SpinBox_SignalEnd->value();
+    this->ui->SpinBox_SignalEnd->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->HorizontalSlider_SignalEnd->setRange(intTimeMs, intTimeMs * 2 * sizeHalfPos);
+    this->ui->SpinBox_SignalEnd->setValue(v);
+    this->ui->HorizontalSlider_SignalEnd->setValue(v);
 
     this->graphChannel->Set(2 * sizeHalfPos);
     this->graphChannel->GetXaxis()->SetTitle("Time (ms)");
@@ -3059,22 +3065,29 @@ void MainWindow::onUpdateChannelGraphClicked()
   }
   else
   {
-    this->ui->SpinBox_PedBegin->setMinimum(intTimeMs);
-    this->ui->SpinBox_PedEnd->setMinimum(intTimeMs);
-    this->ui->SpinBox_SignalBegin->setMinimum(intTimeMs);
-    this->ui->SpinBox_SignalEnd->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_PedBegin->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_PedEnd->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_SignalBegin->setMinimum(intTimeMs);
-    this->ui->HorizontalSlider_SignalEnd->setMinimum(intTimeMs);
-    this->ui->SpinBox_PedBegin->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->SpinBox_PedEnd->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->SpinBox_SignalBegin->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->SpinBox_SignalEnd->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->HorizontalSlider_PedBegin->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->HorizontalSlider_PedEnd->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->HorizontalSlider_SignalBegin->setMaximum(intTimeMs * sizeHalfPos);
-    this->ui->HorizontalSlider_SignalEnd->setMaximum(intTimeMs * sizeHalfPos);
+    int v = this->ui->SpinBox_PedBegin->value();
+    this->ui->SpinBox_PedBegin->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->SpinBox_PedBegin->setValue(v);
+    this->ui->HorizontalSlider_PedBegin->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->HorizontalSlider_PedBegin->setValue(v);
+
+    v = this->ui->SpinBox_PedEnd->value();
+    this->ui->SpinBox_PedEnd->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->HorizontalSlider_PedEnd->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->SpinBox_PedEnd->setValue(v);
+    this->ui->HorizontalSlider_PedEnd->setValue(v);
+
+    v = this->ui->SpinBox_SignalBegin->value();
+    this->ui->SpinBox_SignalBegin->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->HorizontalSlider_SignalBegin->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->SpinBox_SignalBegin->setValue(v);
+    this->ui->HorizontalSlider_SignalBegin->setValue(v);
+
+    v = this->ui->SpinBox_SignalEnd->value();
+    this->ui->SpinBox_SignalEnd->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->HorizontalSlider_SignalEnd->setRange(intTimeMs, intTimeMs * sizeHalfPos);
+    this->ui->SpinBox_SignalEnd->setValue(v);
+    this->ui->HorizontalSlider_SignalEnd->setValue(v);
 
     Double_t max = 0, min = 0;
     this->graphChannel->Set(2 * sizeHalfPos);
