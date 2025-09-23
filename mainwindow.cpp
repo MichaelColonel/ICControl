@@ -533,7 +533,7 @@ void ReverseBits(std::bitset< N >& b)
   }
 }
 
-std::map< std::pair< int, int >, std::vector< double > > AmplitudeCalibrationMap;
+//std::map< std::pair< int, int >, std::vector< double > > AmplitudeCalibrationMap;
 
 }
 
@@ -559,7 +559,7 @@ MainWindow::MainWindow(QWidget *parent)
     for (int j = 1; j <= CHANNELS_PER_CHIP; ++j)
     {
       std::pair< int, int > chipChannelPair(i, j);
-      AmplitudeCalibrationMap.insert({chipChannelPair, std::vector< double >() });
+//      AmplitudeCalibrationMap.insert({chipChannelPair, std::vector< double >() });
       this->chipChannelCalibrationA.insert({chipChannelPair, 1.0 });
       this->chipChannelCalibrationB.insert({chipChannelPair, 1.0 });
       this->chipChannelCalibrationAmplitude.insert({chipChannelPair, 1.0 });
@@ -806,6 +806,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect( ui->PushButton_OpenFile, SIGNAL(clicked()), this, SLOT(onOpenRootFileClicked()));
   connect( ui->PushButton_ClearList, SIGNAL(clicked()), this, SLOT(onClearSpillListClicked()));
   connect( ui->PushButton_ProcessSpills, SIGNAL(clicked()), this, SLOT(onProcessSelectedItemsClicked()));
+  connect( ui->PushButton_ProcessCalibration, SIGNAL(clicked()), this, SLOT(onProcessSelectedCalibrationItemsClicked()));
   connect( ui->PushButton_Fit, SIGNAL(clicked()), this, SLOT(onFitParametersClicked()));
   connect( ui->PushButton_TanCalculation, SIGNAL(clicked()), this, SLOT(onTangentCalculationClicked()));
   connect( ui->PushButton_Calibrate, SIGNAL(clicked()), this, SLOT(onCalibrateClicked()));
@@ -976,7 +977,7 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
       this->acquisitionPort->write(setAcquisitionCommand);
     }
 */
-    this->initiationProgress->setLabelText("Reset ATmega128A input command buffer...");
+    this->initiationProgress->setLabelText("Reset ATmega64 input command buffer...");
     this->initiationProgress->setRange(0, 0);
     this->initiationProgress->setValue(0);
     this->initiationProgress->show();
@@ -998,7 +999,6 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
 
   if (this->acquisitionDataPort && this->acquisitionDataPort->open(QIODevice::ReadOnly))
   {
-    qDebug() << Q_FUNC_INFO << ": 0K.";
     this->acquisitionDataPort->setBaudRate(QSerialPort::Baud57600);
     this->acquisitionDataPort->setDataBits(QSerialPort::Data8);
     this->acquisitionDataPort->setParity(QSerialPort::NoParity);
@@ -1346,10 +1346,10 @@ void MainWindow::acquisitionSerialPortDataReady()
     /// Data is safe => clear acquisition buffer
     this->acquisitionDataBuffer.clear();
     std::bitset< CHIPS_PER_PLANE * 2 > chipsDevices(chamberResponse.ChipsEnabledCode);
+    this->onProcessSpillChannelsCountsClicked();
     if (chipsDevices.count() == this->chipsAddresses.size())
     {
       /// Save processed data
-      this->onProcessSpillChannelsCountsClicked();
       this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
       this->hist2Pad[ORIENTATION_VERTICAL]->Update();
       this->graphPad[ORIENTATION_VERTICAL]->Modified();
@@ -1373,9 +1373,6 @@ void MainWindow::acquisitionSerialPortDataReady()
     }
     if (this->calibrationEnabled)
     {
-      auto calibrationIter = this->calibrationChannelsCounts.end();
-      calibrationIter--;
-//      this->calibrationChannelsCounts[calibrationIter->first] = this->channelsCounts[0];
       QTimer::singleShot( 100, this, SLOT(onSetNextOffset()));
     }
     return;
@@ -1547,6 +1544,55 @@ void MainWindow::onProcessRawDataClicked()
   this->ui->LineEdit_EnabledChips->setText(chipsStr);
 }
 
+void MainWindow::getUniqueChipsAddressesFromAcquisitionData(std::vector< int >& chipsAddress)
+{
+  std::vector< int > addresses;
+  const QByteArray& arr = this->acquisitionDataBuffer;
+  std::array< int, 4 > findData{ 0 , 0 , 0 , 0 };
+  for (int i = 0; i < arr.size() - 4; i += 4)
+  {
+    std::bitset< CHAR_BIT > d0(arr.at(i)), d1(arr.at(i + 1)), d2(arr.at(i + 2)), d3(arr.at(i + 3));
+    if (!d0.test(7) && d0.test(0))
+    {
+      findData[0] += 1;
+    }
+    if (!d1.test(7) && d1.test(0))
+    {
+      findData[1] += 1;
+    }
+    if (!d2.test(7) && d2.test(0))
+    {
+      findData[2] += 1;
+    }
+    if (!d3.test(7) && d3.test(0))
+    {
+      findData[3] += 1;
+    }
+  }
+  std::array< int, 4 >::iterator findDataIter = std::max_element( findData.begin(), findData.end());
+  int offset = findDataIter - findData.begin();
+  constexpr int CHIP_BITS = 4;
+  for (int i = offset; i < arr.size(); i += 4)
+  {
+    std::bitset< CHAR_BIT > d1(arr.at(i + 1));
+    std::bitset< CHIP_BITS > chipBits((d1 >> CHIP_BITS).to_ulong());
+    ReverseBits< CHIP_BITS >(chipBits);
+    int chip = chipBits.to_ulong() - CHIP_BITS;
+    addresses.push_back(chip);
+  }
+
+  std::vector< int >::iterator last = std::unique(addresses.begin(), addresses.end());
+  addresses.erase(last, addresses.end());
+  std::sort(addresses.begin(), addresses.end());
+  last = std::unique(addresses.begin(), addresses.end());
+  addresses.erase(last, addresses.end());
+  if (addresses.size())
+  {
+    chipsAddress = addresses;
+  }
+}
+
+
 void MainWindow::onAgilentDeviceConnectClicked()
 {
   QString name = ui->LineEdit_AgilentDeviceName->text();
@@ -1651,9 +1697,6 @@ void MainWindow::agilentSerialPortBytesWritten(qint64 bytes)
     this->lastAgilentCommandWritten.clear();
     if (this->calibrationEnabled)
     {
-      int offset = this->agilentOffsets.front();
-      std::vector<int> sideA, sideB;
-      this->calibrationChannelsCounts[offset] = std::make_pair( sideA, sideB);
       this->agilentOffsets.pop_front();
       QTimer::singleShot( 100, this, SLOT(onSingleShotClicked()));
     }
@@ -1757,6 +1800,7 @@ void MainWindow::setAgilentOffset(double offset_mV)
   sstr << "VOLT:OFFS " << std::setprecision(4) << (offset_mV / 1000.) << '\n';
   std::string stringCommand = sstr.str();
 
+  this->currentAgilentOffset = offset_mV;
   this->lastAgilentCommandWritten = QByteArray( stringCommand.c_str(), stringCommand.size());
   if (this->agilentPort && this->agilentPort->isOpen())
   {
@@ -2037,6 +2081,12 @@ void MainWindow::storeSpillData(const QDateTime& timeStamp)
     dataBits = AdcResolutionType::ADC_20_BIT;;
   }
 
+  int calibration[4] = {
+    this->currentAgilentOffset,
+    this->ui->SpinBox_OffsetBegin->value(),
+    this->ui->SpinBox_OffsetEnd->value(),
+    this->ui->SpinBox_OffsetStep->value()
+  };
   spillTree->Branch("respChipsEnabled", &chamberResponse.ChipsEnabled, "respChipsEnabled/I");
   spillTree->Branch("respChipsEnabledCode", &chamberResponse.ChipsEnabledCode, "respChipsEnabledCode/s");
   spillTree->Branch("respIntTime", &chamberResponse.IntegrationTimeCode, "respIntTime/I");
@@ -2055,6 +2105,8 @@ void MainWindow::storeSpillData(const QDateTime& timeStamp)
   std::vector< int >* chipsAcquiredPtr = &this->chipsAddresses;
   spillTree->Branch("chipsAcquired", &chipsAcquired, "chipsAcquired/l");
   spillTree->Branch("chipsAcquiredVector", "std::vector< int >", &chipsAcquiredPtr);
+  spillTree->Branch("calibEnabled", &this->calibrationEnabled, "calibEnabled/O");
+  spillTree->Branch("calibOffset", &calibration, "calibOffsets[4]/I");
 
   spillTree->Fill();
   spillTree->Write();
@@ -2253,6 +2305,15 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       infoCalib.sigMom2A = boost::accumulators::moment< 2 >(statCalibSigA);
       infoCalib.sigMom2B = boost::accumulators::moment< 2 >(statCalibSigB);
 
+      // for calibration process calibration data
+      if (this->calibrationEnabled)
+      {
+        ChipChannelCalibrationMapPair& calibrationPair = this->adcOffsetCalibrationMap[this->currentAgilentOffset];
+        ChipChannelCalibrationMap& calibrationA = calibrationPair.first;
+        ChipChannelCalibrationMap& calibrationB = calibrationPair.second;
+        calibrationA[curr] = info.sigMeanA;
+        calibrationB[curr] = info.sigMeanB;
+      }
       double signalA = (info.sigSumA - info.sigCountA * info.pedMeanA) / info.sigCountA;
       double signalB = (info.sigSumB - info.sigCountB * info.pedMeanB) / info.sigCountB;
       double channelSignal = (signalA + signalB) / 2.;
@@ -2899,6 +2960,7 @@ void MainWindow::onSetNextOffset()
   else
   {
     this->calibrationEnabled = false;
+    this->currentAgilentOffset = -1000;
   }
   this->ui->progressBar->setValue(this->agilentOffsets.size());
 }
@@ -3220,6 +3282,123 @@ void MainWindow::onProcessSelectedItemsClicked()
 
     unsigned int mode = -1;
     int adcMode = -1;
+    bool calibEnabled = false;
+    int calibOffsets[4] = { -1000, -1000, -1000, -1000 };
+    if (!item)
+    {
+      continue;
+    }
+    QString treeName = item->text();
+    std::string treeStdName = treeName.toStdString();
+    TTree* spillTree = dynamic_cast< TTree* >(f->Get(treeStdName.c_str()));
+
+    if (spillTree)
+    {
+      spillTree->SetBranchAddress("respChipsEnabled", &tmpResponse.ChipsEnabled);
+      spillTree->SetBranchAddress("respChipsEnabledCode", &tmpResponse.ChipsEnabledCode);
+      spillTree->SetBranchAddress("respIntTime", &tmpResponse.IntegrationTimeCode);
+      spillTree->SetBranchAddress("respCapacity", &tmpResponse.CapacityCode);
+      spillTree->SetBranchAddress("respExtStart", &tmpResponse.ExternalStartState);
+      spillTree->SetBranchAddress("respAdcMode", &tmpResponse.AdcMode);
+      spillTree->SetBranchAddress("mode", &mode);
+      spillTree->SetBranchAddress("adcMode", &adcMode);
+      spillTree->SetBranchAddress("bufferSize", &bufferSize);
+      spillTree->SetBranchAddress("bufferVector", &bufferPtr);
+      spillTree->SetBranchAddress("chipsAcquired", &chipsAcquiredSize);
+      spillTree->SetBranchAddress("chipsAcquiredVector", &chipsAcquiredPtr);
+      spillTree->SetBranchAddress("calibEnabled", &calibEnabled);
+      spillTree->SetBranchAddress("calibOffset", &calibOffsets);
+      Int_t nentries = static_cast<Int_t>(spillTree->GetEntries());
+
+      for (Int_t i = 0; i < nentries; i++)
+      {
+        spillTree->GetEntry(i);
+        this->calibrationEnabled = calibEnabled;
+        this->currentAgilentOffset = calibOffsets[0];
+        this->agilentOffsets.push_back(calibOffsets[0]);
+        if (bufferSize && bufferSize == buffer.size())
+        {
+          this->acquisitionDataBuffer.resize(bufferSize);
+          std::copy( buffer.begin(), buffer.end(), this->acquisitionDataBuffer.begin());
+
+          switch (tmpResponse.AdcMode)
+          {
+          case 16:
+            this->ui->RadioButton_Adc16Bit->setChecked(true);
+            break;
+          case 20:
+            this->ui->RadioButton_Adc20Bit->setChecked(true);
+            break;
+          default:
+            break;
+          }
+
+          int integrationTimeCode = mode & 0x0F;
+          int capacityCode = mode >> 4;
+          if (integrationTimeCode == tmpResponse.IntegrationTimeCode)
+          {
+            this->ui->HorizontalSlider_IntegrationTime->setValue((integrationTimeCode + 1) * 2);
+            qDebug() << Q_FUNC_INFO << "Integration time: " << (integrationTimeCode + 1) * 2 << " ms";
+          }
+          if (capacityCode == tmpResponse.CapacityCode)
+          {
+            this->ui->ComboBox_AcquisitionCapacity->setCurrentIndex(capacityCode);
+            qDebug() << Q_FUNC_INFO << "Capacity: " << CapacityCoefficient[capacityCode] << " pF";
+          }
+          qDebug() << Q_FUNC_INFO << "Calibration offset: " << this->currentAgilentOffset << " mV";
+          this->ui->CheckBox_ExternalStart->setChecked(tmpResponse.ExternalStartState);
+
+          this->onProcessRawDataClicked();
+          this->chamberResponse = tmpResponse;
+          this->onProcessSpillChannelsCountsClicked();
+          this->acquisitionDataBuffer.clear();
+        }
+      }
+    }
+  }
+  f->Close();
+  this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
+  this->hist2Pad[ORIENTATION_VERTICAL]->Update();
+  this->graphPad[ORIENTATION_VERTICAL]->Modified();
+  this->graphPad[ORIENTATION_VERTICAL]->Update();
+  this->hist2Pad[ORIENTATION_HORIZONTAL]->Modified();
+  this->hist2Pad[ORIENTATION_HORIZONTAL]->Update();
+  this->graphPad[ORIENTATION_HORIZONTAL]->Modified();
+  this->graphPad[ORIENTATION_HORIZONTAL]->Update();
+  this->padFit[ORIENTATION_VERTICAL]->Modified();
+  this->padFit[ORIENTATION_VERTICAL]->Update();
+  this->padFit[ORIENTATION_HORIZONTAL]->Modified();
+  this->padFit[ORIENTATION_HORIZONTAL]->Update();
+  this->calibrationEnabled = false;
+}
+
+void MainWindow::onProcessSelectedCalibrationItemsClicked()
+{
+  if (rootFileName.isEmpty())
+  {
+    return;
+  }
+  std::string rootStdName = rootFileName.toStdString();
+  TFile* f = TFile::Open(rootStdName.c_str());
+
+  QList<QListWidgetItem*> selectedItems = ui->ListWidget_Spills->selectedItems();
+  ui->Label_NumberOfSpills->setText(tr("%1").arg(selectedItems.size()));
+
+  this->calibrationEnabled = true;
+  for (QListWidgetItem* item : selectedItems)
+  {
+    struct ChamberResponse tmpResponse;
+
+    ULong64_t bufferSize = 0;
+    std::vector< char > buffer;
+    std::vector< char >* bufferPtr = &buffer;
+
+    ULong64_t chipsAcquiredSize = 0;
+    std::vector< int > chipsAcquired;
+    std::vector< int >* chipsAcquiredPtr = &chipsAcquired;
+
+    unsigned int mode = -1;
+    int adcMode = -1;
     if (!item)
     {
       continue;
@@ -3270,12 +3449,10 @@ void MainWindow::onProcessSelectedItemsClicked()
           if (integrationTimeCode == tmpResponse.IntegrationTimeCode)
           {
             this->ui->HorizontalSlider_IntegrationTime->setValue((integrationTimeCode + 1) * 2);
-            qDebug() << Q_FUNC_INFO << "Integration time: " << (integrationTimeCode + 1) * 2 << " ms";
           }
           if (capacityCode == tmpResponse.CapacityCode)
           {
             this->ui->ComboBox_AcquisitionCapacity->setCurrentIndex(capacityCode);
-            qDebug() << Q_FUNC_INFO << "Capacity: " << CapacityCoefficient[capacityCode] << " pF";
           }
           this->ui->CheckBox_ExternalStart->setChecked(tmpResponse.ExternalStartState);
 
@@ -3283,7 +3460,6 @@ void MainWindow::onProcessSelectedItemsClicked()
           if (this->chipsAddresses.size() == size_t(tmpResponse.ChipsEnabled))
           {
             this->chamberResponse = tmpResponse;
-            qDebug() << Q_FUNC_INFO << "Number of enabled chips are correct";
             this->onProcessSpillChannelsCountsClicked();
           }
           this->acquisitionDataBuffer.clear();
@@ -3304,6 +3480,7 @@ void MainWindow::onProcessSelectedItemsClicked()
   this->padFit[ORIENTATION_VERTICAL]->Update();
   this->padFit[ORIENTATION_HORIZONTAL]->Modified();
   this->padFit[ORIENTATION_HORIZONTAL]->Update();
+  this->calibrationEnabled = false;
 }
 
 void MainWindow::onCurrentSpillItemChanged(QListWidgetItem* newItem,QListWidgetItem*)
@@ -3424,8 +3601,8 @@ void MainWindow::onStartIterationAcquisitionClicked()
   {
     this->ui->progressBar->setValue(0);
     this->calibrationEnabled = false;
-    this->calibrationChannelsCounts.clear();
     this->agilentOffsets.clear();
+    this->currentAgilentOffset = -1000;
     return;
   }
 
@@ -3439,14 +3616,26 @@ void MainWindow::onStartIterationAcquisitionClicked()
   this->ui->SpinBox_TanOffsetEnd->setSingleStep(offStep);
   this->ui->LineEdit_SpillPrefix->setText(tr("Calibration_%1_%2_%3").arg(offBegin).arg(offEnd).arg(offStep));
   this->agilentOffsets.clear();
-  this->calibrationChannelsCounts.clear();
+  this->adcOffsetCalibrationMap.clear();
   if (this->ui->SpinBox_OffsetBegin->value() >= this->ui->SpinBox_OffsetEnd->value())
   {
     return;
   }
-  for (int i = offBegin; i <= offEnd; i += offStep)
+  for (int off = offBegin; off <= offEnd; off += offStep)
   {
-    this->agilentOffsets.push_back(i);
+    this->agilentOffsets.push_back(off);
+
+    ChipChannelCalibrationMap adcOffsetA, adcOffsetB;
+    for (int i = 1; i <= CHIPS_PER_PLANE * 2; ++i)
+    {
+      for (int j = 1; j <= CHANNELS_PER_CHIP; ++j)
+      {
+        std::pair< int, int > chipChannelPair(i, j);
+        adcOffsetA.insert(std::make_pair( chipChannelPair, -1.));
+        adcOffsetB.insert(std::make_pair( chipChannelPair, -1.));
+        this->adcOffsetCalibrationMap.insert(std::make_pair( off, ChipChannelCalibrationMapPair( adcOffsetA, adcOffsetB)));
+      }
+    }
   }
   this->ui->progressBar->setRange(0, this->agilentOffsets.size());
   QTimer::singleShot( 100, this, SLOT(onSetNextOffset()));
@@ -3648,95 +3837,58 @@ void MainWindow::onClearHistogramsClicked()
 void MainWindow::onCalibrationClicked()
 {
   int channelIndex = this->ui->HorizontalSlider_CalibrationChannel->value() - 1;
+  int chipNumber = this->ui->HorizontalSlider_Chip->value();
+  std::pair< int, int > currentChipChannelPair(chipNumber, channelIndex + 1);
 
-  int calibrationSize = this->calibrationChannelsCounts.size();
+  int calibrationSize = this->adcOffsetCalibrationMap.size();
   qDebug() << Q_FUNC_INFO << "Calibration size: " << calibrationSize;
   this->calibrationGraph->Set(calibrationSize);
   this->calibrationGraph->GetXaxis()->SetTitle("Offset (mV)");
-
   this->calibrationPad->cd();
 
-  int intTimeMs = this->ui->HorizontalSlider_IntegrationTime->value() / 2;
-  qDebug() << Q_FUNC_INFO << "Integration time index: " << intTimeMs;
-  int pedBegin = static_cast<int>(this->ui->SpinBox_PedBegin->value() / (2 * intTimeMs));
-  int pedEnd = static_cast<int>(this->ui->SpinBox_PedEnd->value() / (2 * intTimeMs));
-  int sigBegin = static_cast<int>(this->ui->SpinBox_SignalBegin->value() / (2 * intTimeMs));
-  int sigEnd = static_cast<int>(this->ui->SpinBox_SignalEnd->value() / (2 * intTimeMs));
-
-  if (this->ui->CheckBox_RawData->isChecked())
-  {
-    pedBegin = static_cast<int>(this->ui->SpinBox_PedBegin->value() / intTimeMs);
-    pedEnd = static_cast<int>(this->ui->SpinBox_PedEnd->value() / intTimeMs);
-    sigBegin = static_cast<int>(this->ui->SpinBox_SignalBegin->value() / intTimeMs);
-    sigEnd = static_cast<int>(this->ui->SpinBox_SignalEnd->value() / intTimeMs);
-  }
-  qDebug() << Q_FUNC_INFO << pedBegin << ' ' << pedEnd << ' ' << sigBegin << ' ' << sigEnd;
-
   int i = 0;
-  for (auto cIter = this->calibrationChannelsCounts.begin(); cIter != this->calibrationChannelsCounts.end(); ++cIter)
+  for (auto iter = this->adcOffsetCalibrationMap.begin(); iter != this->adcOffsetCalibrationMap.end(); ++iter)
   {
-    std::pair< std::vector<int>, std::vector<int> >& pair = cIter->second;
-    std::vector<int>& sideA = pair.first;
-    std::vector<int>& sideB = pair.second;
-    size_t sizeA = sideA.size();
-    size_t sizeB = sideB.size();
-    if (!sizeA || !sizeB)
+    double valueA = -1000., valueB = -1000.;
+    bool validA = false, validB = false;
+    int offset = iter->first;
+    ChipChannelCalibrationMapPair& chipChannelMapPair = iter->second;
+    ChipChannelCalibrationMap& chipChannelMapA = chipChannelMapPair.first;
+    ChipChannelCalibrationMap& chipChannelMapB = chipChannelMapPair.second;
+    for (auto iter2 = chipChannelMapA.begin(); iter2 != chipChannelMapA.end(); ++ iter2)
     {
-      qCritical() << Q_FUNC_INFO << "Chip data size is empty for a calibration";
-      return;
+      std::pair< int, int > chipChannelPair = iter2->first;
+      double value = iter2->second;
+      if (currentChipChannelPair == chipChannelPair)
+      {
+        valueA = value;
+        validA = true;
+/*
+        qDebug() << Q_FUNC_INFO << "A: Offset: " << offset << ", chip: " \
+                 << chipChannelPair.first << ", channel: " << chipChannelPair.second \
+                 << ", signal: " << value;
+*/
+      }
     }
-
-    std::vector<int> b, a;
-    MeanDispAccumType statPedB;
-    MeanDispAccumType statSigB;
-    MeanDispAccumType statPedA;
-    MeanDispAccumType statSigA;
-    for (size_t j = 0; j < sizeB; j += CHANNELS_PER_CHIP)
+    for (auto iter2 = chipChannelMapB.begin(); iter2 != chipChannelMapB.end(); ++ iter2)
     {
-      b.push_back(sideB[j + channelIndex]);
+      std::pair< int, int > chipChannelPair = iter2->first;
+      double value = iter2->second;
+      if (currentChipChannelPair == chipChannelPair)
+      {
+        valueB = value;
+        validB = true;
+/*
+        qDebug() << Q_FUNC_INFO << "B: Offset: " << offset << ", chip: " \
+                 << chipChannelPair.first << ", channel: " << chipChannelPair.second \
+                 << ", signal: " << value;
+*/
+      }
     }
-    for (size_t j = 0; j < sizeA; j += CHANNELS_PER_CHIP)
+    if (validA && validB)
     {
-      a.push_back(sideA[j + channelIndex]);
+      this->calibrationGraph->SetPoint( i++, Double_t(offset), (valueA + valueB) / 2.);
     }
-    for (int j = pedBegin; j < pedEnd; ++j)
-    {
-      statPedB(b[j]);
-      statPedA(a[j]);
-    }
-    for (int j = sigBegin; j < sigEnd; ++j)
-    {
-      statSigB(b[j]);
-      statSigA(a[j]);
-    }
-
-    ChannelInfo stripInfo;
-    stripInfo.pedMeanA = boost::accumulators::mean(statPedA);
-    stripInfo.pedMeanB = boost::accumulators::mean(statPedB);
-    stripInfo.pedMom2A = boost::accumulators::moment<2>(statPedA);
-    stripInfo.pedMom2B = boost::accumulators::moment<2>(statPedB);
-    stripInfo.sigMeanA = boost::accumulators::mean(statSigA);
-    stripInfo.sigMeanB = boost::accumulators::mean(statSigB);
-    stripInfo.sigMom2A = boost::accumulators::moment<2>(statSigA);
-    stripInfo.sigMom2B = boost::accumulators::moment<2>(statSigB);
-    stripInfo.sigCountA = boost::accumulators::count(statSigA);
-    stripInfo.sigCountB = boost::accumulators::count(statSigB);
-    stripInfo.sigSumA = boost::accumulators::sum(statSigA);
-    stripInfo.sigSumB = boost::accumulators::sum(statSigB);
-
-//    double signalA = stripInfo.sigSumA - stripInfo.sigCountA * stripInfo.pedMeanA;
-//    double signalB = stripInfo.sigSumB - stripInfo.sigCountB * stripInfo.pedMeanB;
-//    double channelSignal = (signalA + signalB) / 2.;
-
-//    double dispPedA = stripInfo.pedMom2A - stripInfo.pedMeanA * stripInfo.pedMeanA;
-//    double dispPedB = stripInfo.pedMom2B - stripInfo.pedMeanB * stripInfo.pedMeanB;
-//    double dispSigA = stripInfo.sigMom2A - stripInfo.sigMeanA * stripInfo.sigMeanA;
-//    double dispSigB = stripInfo.sigMom2B - stripInfo.sigMeanB * stripInfo.sigMeanB;
-
-//    size_t size = std::min< size_t >(sizeA, sizeB);
-//    int sizeHalfPos = size / CHANNELS_PER_CHIP;
-//    qDebug() << Q_FUNC_INFO << "Offset value: " << cIter->first << ", Size: " << size << ", Graph side size: " << sizeHalfPos;
-    this->calibrationGraph->SetPoint( i++, Double_t(cIter->first), (stripInfo.sigMeanA + stripInfo.sigMeanB) / 2.);
   }
   this->calibrationPad->Modified();
   this->calibrationPad->Update();
@@ -3800,6 +3952,7 @@ void MainWindow::onCalibrateClicked()
   }
   file.close();
 */
+/*
   std::map< std::pair< int, int >, Double_t > dataMap;
   for (int i = 0; i < CHANNELS_PER_PLANE; ++i)
   {
@@ -3820,6 +3973,7 @@ void MainWindow::onCalibrateClicked()
     file << p.first << ' ' << p.second << ' ' << v << '\n';
   }
   file.close();
+*/
 }
 
 void MainWindow::onTangentCalculationClicked()
@@ -3830,6 +3984,86 @@ void MainWindow::onTangentCalculationClicked()
 //  int posEnd = (calcEnd - this->ui->SpinBox_TanOffsetEnd->minimum()) / this->ui->SpinBox_TanOffsetEnd->singleStep();
 
   this->ui->TableWidget_ChannelsTangent->setRowCount(CHANNELS_PER_CHIP);
+  int chipNumber = this->ui->HorizontalSlider_Chip->value();
+  int calibrationSize = this->adcOffsetCalibrationMap.size();
+  qDebug() << Q_FUNC_INFO << "Calibration size: " << calibrationSize;
+  this->calibrationGraph->Set(calibrationSize);
+  this->calibrationGraph->GetXaxis()->SetTitle("Offset (mV)");
+  this->calibrationPad->cd();
+
+  for (int channelNumber = 1; channelNumber <= CHANNELS_PER_CHIP; ++channelNumber)
+  {
+    std::pair< int, int > currentChipChannelPair(chipNumber, channelNumber);
+
+    double valueBeginA = -1000., valueBeginB = -1000.;
+    double valueEndA = -1000., valueEndB = -1000.;
+    for (auto iter = this->adcOffsetCalibrationMap.begin(); iter != this->adcOffsetCalibrationMap.end(); ++ iter)
+    {
+      double valueA = -1000., valueB = -1000.;
+      bool validA = false, validB = false;
+      int offset = iter->first;
+      ChipChannelCalibrationMapPair& chipChannelMapPair = iter->second;
+      ChipChannelCalibrationMap& chipChannelMapA = chipChannelMapPair.first;
+      ChipChannelCalibrationMap& chipChannelMapB = chipChannelMapPair.second;
+      for (auto iter2 = chipChannelMapA.begin(); iter2 != chipChannelMapA.end(); ++ iter2)
+      {
+        std::pair< int, int > chipChannelPair = iter2->first;
+        double value = iter2->second;
+        if (currentChipChannelPair == chipChannelPair)
+        {
+          valueA = value;
+          validA = true;
+/*
+          qDebug() << Q_FUNC_INFO << "A: Offset: " << offset << ", chip: " \
+                   << chipChannelPair.first << ", channel: " << chipChannelPair.second \
+                   << ", signal: " << value;
+*/
+        }
+      }
+      for (auto iter2 = chipChannelMapB.begin(); iter2 != chipChannelMapB.end(); ++ iter2)
+      {
+        std::pair< int, int > chipChannelPair = iter2->first;
+        double value = iter2->second;
+        if (currentChipChannelPair == chipChannelPair)
+        {
+          valueB = value;
+          validB = true;
+/*
+          qDebug() << Q_FUNC_INFO << "B: Offset: " << offset << ", chip: " \
+                   << chipChannelPair.first << ", channel: " << chipChannelPair.second \
+                   << ", signal: " << value;
+*/
+        }
+      }
+      if (validA && offset == calcBegin)
+      {
+        valueBeginA = valueA;
+      }
+      if (validA && offset == calcEnd)
+      {
+        valueEndA = valueA;
+      }
+      if (validB && offset == calcBegin)
+      {
+        valueBeginB = valueB;
+      }
+      if (validB && offset == calcEnd)
+      {
+        valueEndB = valueB;
+      }
+    }
+    if (valueBeginA != -1000. && valueBeginB != -1000.
+        && valueEndA != -1000. && valueEndB != -1000.)
+    {
+      double tanSideA = (valueEndA - valueBeginA) / double(calcEnd - calcBegin);
+      QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(tanSideA));
+      this->ui->TableWidget_ChannelsTangent->setItem( channelNumber - 1, 0, item);
+      double tanSideB = (valueEndB - valueBeginB) / double(calcEnd - calcBegin);
+      item = new QTableWidgetItem(tr("%1").arg(tanSideB));
+      this->ui->TableWidget_ChannelsTangent->setItem( channelNumber - 1, 1, item);
+    }
+  }
+/**
   double tanSideA[CHANNELS_PER_CHIP] = {}, tanSideB[CHANNELS_PER_CHIP] = {};
   for (int channelIndex = 0; channelIndex < CHANNELS_PER_CHIP; ++channelIndex)
   {
@@ -3848,6 +4082,8 @@ void MainWindow::onTangentCalculationClicked()
       sigBegin = static_cast<int>(this->ui->SpinBox_SignalBegin->value() / intTimeMs);
       sigEnd = static_cast<int>(this->ui->SpinBox_SignalEnd->value() / intTimeMs);
     }
+**/
+/*
     for (auto cIter = this->calibrationChannelsCounts.begin(); cIter != this->calibrationChannelsCounts.end(); ++cIter)
     {
       std::pair< std::vector<int>, std::vector<int> >& pair = cIter->second;
@@ -3921,6 +4157,8 @@ void MainWindow::onTangentCalculationClicked()
         }
       }
     }
+*/
+/**
     tanSideA[channelIndex] = (resA.second - resA.first) / double(calcEnd - calcBegin);
     QTableWidgetItem* item = new QTableWidgetItem(tr("%1").arg(tanSideA[channelIndex]));
     this->ui->TableWidget_ChannelsTangent->setItem( channelIndex, 0, item);
@@ -3928,7 +4166,8 @@ void MainWindow::onTangentCalculationClicked()
     item = new QTableWidgetItem(tr("%1").arg(tanSideB[channelIndex]));
     this->ui->TableWidget_ChannelsTangent->setItem( channelIndex, 1, item);
   }
-
+**/
+/*
   for (auto cIter = this->calibrationChannelsCounts.begin(); cIter != this->calibrationChannelsCounts.end(); ++cIter)
   {
     int offset = cIter->first;
@@ -3938,6 +4177,7 @@ void MainWindow::onTangentCalculationClicked()
     this->storeCalibrationData( offset, sideA, sideB);
   }
   this->storeTangentData(calcBegin, calcEnd, tanSideA, tanSideB);
+*/
 }
 
 void MainWindow::sendCameraProfiles()

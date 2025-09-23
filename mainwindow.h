@@ -129,6 +129,7 @@ private slots:
 
   void onOpenRootFileClicked();
   void onProcessSelectedItemsClicked();
+  void onProcessSelectedCalibrationItemsClicked();
   void onClearSpillListClicked();
   void onCurrentSpillItemChanged(QListWidgetItem*,QListWidgetItem*);
   void onPedestalsBeginClicked(int);
@@ -145,6 +146,7 @@ private slots:
   void onClearHistogramsClicked();
   void onCalibrateClicked();
 private:
+  void getUniqueChipsAddressesFromAcquisitionData(std::vector< int >& addresses);
   int currentCameraNumber() const;
   void storeSpillData(const QDateTime& timeStamp);
   void storeCalibrationData(int offset, const std::vector<int>& sideA, const std::vector<int>& sideB);
@@ -242,12 +244,19 @@ private:
   int spillNumber{ -1 };
   QTimer* spillTimeoutTimer{ nullptr };
   QTimer* initiationTimer{ nullptr };
+  // Data for calibration acquisition
   bool calibrationEnabled{ false };
   std::list< int > agilentOffsets;
-  std::map< int, std::pair< std::vector< int >, std::vector< int > > > calibrationChannelsCounts;
-  std::map< std::pair< int, int >, double > chipChannelCalibrationA;
-  std::map< std::pair< int, int >, double > chipChannelCalibrationB;
-  std::map< std::pair< int, int >, double > chipChannelCalibrationAmplitude;
+  int currentAgilentOffset{ -1000 };
+
+  using ChipChannelCalibrationMap = std::map< std::pair< int, int >, double >;
+  using ChipChannelCalibrationMapPair = std::pair< ChipChannelCalibrationMap, ChipChannelCalibrationMap >;
+  std::map< int, ChipChannelCalibrationMapPair > adcOffsetCalibrationMap; // ADC-Offset calibration
+
+  // Data from JSON parameters file of the IC
+  std::map< std::pair< int, int >, double > chipChannelCalibrationA; // ADC-Offset tangent chip calibration A
+  std::map< std::pair< int, int >, double > chipChannelCalibrationB; // ADC-Offset tangent chip calibration B
+  std::map< std::pair< int, int >, double > chipChannelCalibrationAmplitude; // X-ray sensitivity calibration
 
   TCanvas* calibrationCanvas{ nullptr };
   TPad* calibrationPad{ nullptr };
