@@ -983,6 +983,8 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
     this->initiationProgress->show();
     this->initiationTimer->start();
     connected = true;
+    this->ui->RadioButton_Camera1->setEnabled(false);
+    this->ui->RadioButton_Camera2->setEnabled(false);
   }
   else if (this->acquisitionPort && !this->acquisitionPort->isOpen())
   {
@@ -995,6 +997,8 @@ void MainWindow::onAcquisitionDeviceConnectClicked()
 
     delete this->acquisitionPort;
     this->acquisitionPort = nullptr;
+    this->ui->RadioButton_Camera1->setEnabled(true);
+    this->ui->RadioButton_Camera2->setEnabled(true);
   }
 
   if (this->acquisitionDataPort && this->acquisitionDataPort->open(QIODevice::ReadOnly))
@@ -1068,6 +1072,9 @@ void MainWindow::onAcquisitionDeviceDisconnectClicked()
     this->acquisitionDataPort = nullptr;
   }
   connected = false;
+
+  this->ui->RadioButton_Camera1->setEnabled(true);
+  this->ui->RadioButton_Camera2->setEnabled(true);
 
   if (rootFile)
   {
@@ -2832,7 +2839,7 @@ void MainWindow::onInitiateDevicesClicked()
 {
   this->initiateDevicesCommandsList.clear();
 
-  this->initiateDevicesCommandsList.append(ChipResetCommand); // Reset Chip
+//  this->initiateDevicesCommandsList.append(ChipResetCommand); // Reset Chip
   this->initiateDevicesCommandsList.append(AlteraResetCommand); // Reset ALTERA
 
   unsigned char buf[BUFFER_SIZE] = {};
@@ -2896,7 +2903,6 @@ void MainWindow::onInitiateDevicesClicked()
   this->initiateDevicesCommandsList.append(beamExtractionInterrupt); // write beam extraction interrupts
 
   this->initiateDevicesCommandsList.append(ListChipsEnabledCommand); // write list of chips enabled
-
 
   this->initiationProgress->setLabelText("Chips initiation...");
   this->initiationProgress->setRange(0, this->initiateDevicesCommandsList.size());

@@ -508,7 +508,7 @@
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string>Single character sign </string>
+                  <string>Single character</string>
                  </property>
                 </widget>
                </item>
@@ -2332,7 +2332,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="ButtonGroup_AdcMode"/>
   <buttongroup name="ButtonGroup_SelectedCamera"/>
+  <buttongroup name="ButtonGroup_AdcMode"/>
  </buttongroups>
 </ui>

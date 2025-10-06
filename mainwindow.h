@@ -179,7 +179,6 @@ private:
   void setAgilentAmplitude(double mV);
   void setAgilentDutyCycle(int percents);
 
-
   Ui::MainWindow *ui{ nullptr };
   QSerialPort* acquisitionPort{ nullptr };
   QSerialPort* acquisitionDataPort{ nullptr };
