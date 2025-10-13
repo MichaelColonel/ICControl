@@ -47,6 +47,7 @@ win32 {
 #RESOURCES += ICControl.qrc
 
 DISTFILES += ChipsPositions1.json \
+    ChipsPositions2.json \
     Chip1.2.json \
     Chip1.3.json \
     Chip1.4.json \
