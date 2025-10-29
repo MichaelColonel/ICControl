@@ -2840,7 +2840,6 @@ void MainWindow::onInitiateDevicesClicked()
   this->initiateDevicesCommandsList.clear();
 
 //  this->initiateDevicesCommandsList.append(ChipResetCommand); // Reset Chip
-  this->initiateDevicesCommandsList.append(AlteraResetCommand); // Reset ALTERA
 
   unsigned char buf[BUFFER_SIZE] = {};
   buf[0] = 'O';
@@ -2903,6 +2902,7 @@ void MainWindow::onInitiateDevicesClicked()
   this->initiateDevicesCommandsList.append(beamExtractionInterrupt); // write beam extraction interrupts
 
   this->initiateDevicesCommandsList.append(ListChipsEnabledCommand); // write list of chips enabled
+//  this->initiateDevicesCommandsList.append(AlteraResetCommand); // Reset ALTERA
 
   this->initiationProgress->setLabelText("Chips initiation...");
   this->initiationProgress->setRange(0, this->initiateDevicesCommandsList.size());
