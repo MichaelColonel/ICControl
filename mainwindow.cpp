@@ -2414,9 +2414,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         this->getHorizontalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getHorizontalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
-        this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(dispSigA));
+        this->getHorizontalStripsGraph()->SetPointError( chipStrip, 0., 0.);//std::sqrt(dispSigA));
         this->getHorizontalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
-        this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
+        this->getHorizontalCalibratedStripsGraph()->SetPointError( chipStrip, 0.,0.);// std::sqrt(calibDispSigA));
         Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate X of the strip
         Double_t x_err = (this->channelStepPerSideMM / 2.) * channelStepErrorPerSideMM;
         if (this->ui->CheckBox_RawData->isChecked())
@@ -2426,7 +2426,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(chipStrip, x, calibChannelSignal * MeanSignalCountToCharge);
 //        this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
-        this->graphFit[ORIENTATION_HORIZONTAL]->SetPointError(chipStrip, x_err, std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
+        this->graphFit[ORIENTATION_HORIZONTAL]->SetPointError(chipStrip, x_err, 0.);//std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
       }
       else if (std::find(std::begin(ChipsVerticalStrips), std::end(ChipsVerticalStrips), chipAddress + 1) != ChipsVerticalStrips.end())
       { // Vertical strips (Horizontal profile)
@@ -2440,9 +2440,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
         this->getVerticalStripsHist()->Fill( chipStrip + 1, calibChannelSignal);
         this->getVerticalStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), channelSignal);
-        this->getVerticalStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(dispSigA));
+        this->getVerticalStripsGraph()->SetPointError( chipStrip, 0., 0.);//std::sqrt(dispSigA));
         this->getVerticalCalibratedStripsGraph()->SetPoint( chipStrip, Double_t(chipStrip), calibChannelSignal);
-        this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., std::sqrt(calibDispSigA));
+        this->getVerticalCalibratedStripsGraph()->SetPointError( chipStrip, 0., 0.);//std::sqrt(calibDispSigA));
         Double_t x = Double_t(chipStrip) * (this->channelStepPerSideMM / 2.); // coordinate Y of the strip
         Double_t x_err = (this->channelStepPerSideMM / 2.) * channelStepErrorPerSideMM;
         if (this->ui->CheckBox_RawData->isChecked())
@@ -2452,7 +2452,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
         }
 //        this->graphFit[ORIENTATION_VERTICAL]->SetPoint(chipStrip, x, (infoCalib.sigMeanA - infoCalib.pedMeanA) * MeanSignalCountToCharge);
         this->graphFit[ORIENTATION_VERTICAL]->SetPoint(chipStrip, x, calibChannelSignal * MeanSignalCountToCharge);
-        this->graphFit[ORIENTATION_VERTICAL]->SetPointError(chipStrip, x_err, std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
+        this->graphFit[ORIENTATION_VERTICAL]->SetPointError(chipStrip, x_err, 0.);//std::sqrt(calibDispSigA) * MeanSignalCountToCharge);
       }
     }
     k++;
@@ -2468,6 +2468,50 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
       this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
       Q_UNUSED(pos);
+    }
+  }
+  Double_t x, yprev, ynext, yerrprev, yerrnext, xerr;
+  std::vector< Int_t > strips({ 65, 77, 81, 83});
+  for (Int_t strip : strips)
+  {
+    this->getHorizontalStripsGraph()->GetPoint(strip - 1, x, yprev);
+    this->getHorizontalStripsGraph()->GetPoint(strip + 1, x, ynext);
+    this->getHorizontalStripsGraph()->SetPoint(strip, Double_t(strip), (ynext + yprev) / 2.);
+
+    yerrprev = this->getHorizontalStripsGraph()->GetErrorY(strip - 1);
+    yerrnext = this->getHorizontalStripsGraph()->GetErrorY(strip + 1);
+    xerr = this->getHorizontalStripsGraph()->GetErrorX(strip);
+    this->getHorizontalStripsGraph()->SetPointError(strip, xerr, (yerrnext + yerrprev) / 2.);
+
+    this->getHorizontalCalibratedStripsGraph()->GetPoint(strip - 1, x, yprev);
+    this->getHorizontalCalibratedStripsGraph()->GetPoint(strip + 1, x, ynext);
+    this->getHorizontalCalibratedStripsGraph()->SetPoint(strip, Double_t(strip), (ynext + yprev) / 2.);
+
+    yerrprev = this->getHorizontalCalibratedStripsGraph()->GetErrorY(strip - 1);
+    yerrnext = this->getHorizontalCalibratedStripsGraph()->GetErrorY(strip + 1);
+    xerr = this->getHorizontalCalibratedStripsGraph()->GetErrorX(strip);
+    this->getHorizontalCalibratedStripsGraph()->SetPointError(strip, xerr, (yerrnext + yerrprev) / 2.);
+
+    this->graphFit[ORIENTATION_HORIZONTAL]->GetPoint(strip - 1, x, yprev);
+    this->graphFit[ORIENTATION_HORIZONTAL]->GetPoint(strip + 1, x, ynext);
+    this->graphFit[ORIENTATION_HORIZONTAL]->SetPoint(strip, Double_t(strip), (ynext + yprev) / 2.);
+
+    yerrprev = this->graphFit[ORIENTATION_HORIZONTAL]->GetErrorY(strip - 1);
+    yerrnext = this->graphFit[ORIENTATION_HORIZONTAL]->GetErrorY(strip + 1);
+    xerr = this->graphFit[ORIENTATION_HORIZONTAL]->GetErrorX(strip);
+    this->graphFit[ORIENTATION_HORIZONTAL]->SetPointError(strip, xerr, (yerrnext + yerrprev) / 2.);
+  }
+
+  for (Int_t horizStrip : strips)
+  {
+    for (Int_t vertStrip = 0; vertStrip < CHANNELS_PER_PLANE; ++vertStrip)
+    {
+      Double_t vPrev = this->hist2D->GetBinContent(vertStrip, horizStrip - 1);
+      Double_t vNext = this->hist2D->GetBinContent(vertStrip, horizStrip + 1);
+      this->hist2D->SetBinContent( vertStrip, horizStrip, (vPrev + vNext) / 2.);
+      vPrev = this->hist2D->GetBinError(vertStrip, horizStrip - 1);
+      vNext = this->hist2D->GetBinError(vertStrip, horizStrip + 1);
+      this->hist2D->SetBinError(vertStrip, horizStrip, (vPrev + vNext) / 2.);
     }
   }
 
