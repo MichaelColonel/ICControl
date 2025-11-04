@@ -24,7 +24,7 @@ greaterThan( QT_MAJOR_VERSION, 4) {
     CONFIG += serialport
 }
 
-TARGET = ICControl
+TARGET = Camera1
 
 TEMPLATE = app
 
