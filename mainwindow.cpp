@@ -650,7 +650,7 @@ MainWindow::MainWindow(QWidget *parent)
 //  this->getVerticalStripsGraph()->SetTitle("Vertical Strips (Horizontal profile);Strips;Spill integral");
 
   this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalStripsGraph());
-  this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalCalibratedStripsGraph());
+///  this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalCalibratedStripsGraph());
   this->getHorizontalStripsCanvas()->cd(2);
   this->graphPad[StripsOrientationType::ORIENTATION_HORIZONTAL] = dynamic_cast<TPad*>(this->getHorizontalStripsCanvas()->GetPad(2));
   this->graphPad[StripsOrientationType::ORIENTATION_HORIZONTAL]->Draw();
@@ -659,7 +659,7 @@ MainWindow::MainWindow(QWidget *parent)
   this->getHorizontalStripsMultiGraph()->Draw("APL*");
 
   this->getVerticalStripsMultiGraph()->Add( this->getVerticalStripsGraph());
-  this->getVerticalStripsMultiGraph()->Add( this->getVerticalCalibratedStripsGraph());
+///  this->getVerticalStripsMultiGraph()->Add( this->getVerticalCalibratedStripsGraph());
   this->getVerticalStripsCanvas()->cd(2);
   this->graphPad[StripsOrientationType::ORIENTATION_VERTICAL] = dynamic_cast<TPad*>(this->getVerticalStripsCanvas()->GetPad(2));
   this->graphPad[StripsOrientationType::ORIENTATION_VERTICAL]->Draw();
@@ -2464,8 +2464,10 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_PLANE; ++vertStrips)
     {
       Double_t xV, yV, xH, yH;
-      Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
-      pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
+///      Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
+///      pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
+      Int_t pos = this->getVerticalStripsGraph()->GetPoint( vertStrips, xV, yV);
+      pos = this->getHorizontalStripsGraph()->GetPoint( horizStrips, xH, yH);
       this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
       Q_UNUSED(pos);
     }
