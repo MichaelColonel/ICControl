@@ -650,7 +650,7 @@ MainWindow::MainWindow(QWidget *parent)
 //  this->getVerticalStripsGraph()->SetTitle("Vertical Strips (Horizontal profile);Strips;Spill integral");
 
   this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalStripsGraph());
-///  this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalCalibratedStripsGraph());
+  this->getHorizontalStripsMultiGraph()->Add( this->getHorizontalCalibratedStripsGraph());
   this->getHorizontalStripsCanvas()->cd(2);
   this->graphPad[StripsOrientationType::ORIENTATION_HORIZONTAL] = dynamic_cast<TPad*>(this->getHorizontalStripsCanvas()->GetPad(2));
   this->graphPad[StripsOrientationType::ORIENTATION_HORIZONTAL]->Draw();
@@ -659,7 +659,7 @@ MainWindow::MainWindow(QWidget *parent)
   this->getHorizontalStripsMultiGraph()->Draw("APL*");
 
   this->getVerticalStripsMultiGraph()->Add( this->getVerticalStripsGraph());
-///  this->getVerticalStripsMultiGraph()->Add( this->getVerticalCalibratedStripsGraph());
+  this->getVerticalStripsMultiGraph()->Add( this->getVerticalCalibratedStripsGraph());
   this->getVerticalStripsCanvas()->cd(2);
   this->graphPad[StripsOrientationType::ORIENTATION_VERTICAL] = dynamic_cast<TPad*>(this->getVerticalStripsCanvas()->GetPad(2));
   this->graphPad[StripsOrientationType::ORIENTATION_VERTICAL]->Draw();
@@ -2239,15 +2239,15 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   double refB = this->chipChannelCalibrationB[ref]; // reference value side-B
   double refAmpl = this->chipChannelCalibrationAmplitude[refAmplitude]; // reference amplitude value
 
-//  int capIndex = this->ui->ComboBox_AcquisitionCapacity->currentIndex();
-//  double cap = CapacityCoefficient[capIndex];
-//  int intTime = this->ui->HorizontalSlider_IntegrationTime->value();
-//  QString text = this->ui->LineEdit_SpillPrefix->text();
+  int capIndex = this->ui->ComboBox_AcquisitionCapacity->currentIndex();
+  double cap = CapacityCoefficient[capIndex];
+  int intTime = this->ui->HorizontalSlider_IntegrationTime->value();
+  QString text = this->ui->LineEdit_SpillPrefix->text();
 
-//  std::stringstream filenameStream;
-//  filenameStream << "ChannelsAmp_" << text.toStdString() << '_' << cap << '_' << intTime << ".txt";
-//  std::string filename = filenameStream.str();
-//  std::ofstream data(filename);
+  std::stringstream filenameStream;
+  filenameStream << "ChannelsAmp_" << text.toStdString() << '_' << cap << '_' << intTime << ".txt";
+  std::string filename = filenameStream.str();
+  std::ofstream data(filename);
 
   int k = 0;
   for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
@@ -2367,14 +2367,14 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 13, item);
       item = new QTableWidgetItem(tr("%1").arg((info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB)));
       this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 14, item);
-/*
+
       data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
            << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << ' ' << info.sigMeanA - info.pedMeanA \
            << ' ' << std::sqrt(dispSigA) << ' ' << info.sigMeanB - info.pedMeanB << ' ' << std::sqrt(dispSigB) \
            << ' ' << signalA << ' ' << signalB << ' ' << channelSignal << ' ' \
            << (info.sigMeanA - info.pedMeanA) / std::sqrt(dispPedA) << ' ' \
            << (info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB) << '\n';
-*/
+
       double MeanSignalCountToCharge = CapacityChargeCoefficient[ui->ComboBox_AcquisitionCapacity->currentIndex()];
       if (ui->RadioButton_Adc16Bit->isChecked())
       {
@@ -2457,21 +2457,8 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     }
     k++;
   }
-//  data.close();
+  data.close();
 
-  for (Int_t horizStrips = 0; horizStrips < CHANNELS_PER_PLANE; ++horizStrips)
-  {
-    for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_PLANE; ++vertStrips)
-    {
-      Double_t xV, yV, xH, yH;
-///      Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
-///      pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
-      Int_t pos = this->getVerticalStripsGraph()->GetPoint( vertStrips, xV, yV);
-      pos = this->getHorizontalStripsGraph()->GetPoint( horizStrips, xH, yH);
-      this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
-      Q_UNUSED(pos);
-    }
-  }
   Double_t x, yprev, ynext, yerrprev, yerrnext, xerr;
   std::vector< Int_t > strips({ 65, 77, 81, 83});
   for (Int_t strip : strips)
@@ -2504,6 +2491,20 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     this->graphFit[ORIENTATION_HORIZONTAL]->SetPointError(strip, xerr, (yerrnext + yerrprev) / 2.);
   }
 
+  for (Int_t horizStrips = 0; horizStrips < CHANNELS_PER_PLANE; ++horizStrips)
+  {
+    for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_PLANE; ++vertStrips)
+    {
+      Double_t xV, yV, xH, yH;
+      Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint( vertStrips, xV, yV);
+      pos = this->getHorizontalCalibratedStripsGraph()->GetPoint( horizStrips, xH, yH);
+///      Int_t pos = this->getVerticalStripsGraph()->GetPoint( vertStrips, xV, yV);
+///      pos = this->getHorizontalStripsGraph()->GetPoint( horizStrips, xH, yH);
+      this->hist2D->SetBinContent( vertStrips, horizStrips, yH * yV);
+      Q_UNUSED(pos);
+    }
+  }
+/*
   for (Int_t horizStrip : strips)
   {
     for (Int_t vertStrip = 0; vertStrip < CHANNELS_PER_PLANE; ++vertStrip)
@@ -2516,7 +2517,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       this->hist2D->SetBinError(vertStrip, horizStrip, (vPrev + vNext) / 2.);
     }
   }
-
+*/
   this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
   this->hist2Pad[ORIENTATION_VERTICAL]->Update();
   this->graphPad[ORIENTATION_VERTICAL]->Modified();
@@ -2687,7 +2688,7 @@ void MainWindow::loadICSettings()
   FILE *fp = fopen(jsonFileName.c_str(), "r");
   if (!fp)
   {
-    qCritical() << Q_FUNC_INFO << ": Can't open JSON file";
+    qCritical() << Q_FUNC_INFO << ": Can't open JSON file: " << jsonFileName.c_str();
     return;
   }
   const size_t size = 100000;
@@ -2697,7 +2698,7 @@ void MainWindow::loadICSettings()
   rapidjson::Document d;
   if (d.ParseStream(fs).HasParseError())
   {
-    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file";
+    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file: " << jsonFileName.c_str();
     fclose(fp);
     return;
   }
@@ -2842,7 +2843,7 @@ bool MainWindow::loadChipCalibration(const std::string& jsonFileName, int positi
   rapidjson::Document d1;
   if (d1.ParseStream(fs).HasParseError())
   {
-    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file";
+    qCritical() << Q_FUNC_INFO << ": Can't parse JSON file: " << jsonFileName.c_str();
     fclose(fp);
     return false;
   }
