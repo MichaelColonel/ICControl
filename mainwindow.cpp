@@ -2367,13 +2367,16 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 13, item);
       item = new QTableWidgetItem(tr("%1").arg((info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB)));
       this->ui->TableWidget_ChannelPedSignalInfo->setItem( chipStripPos, 14, item);
-
+/*
       data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
            << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << ' ' << info.sigMeanA - info.pedMeanA \
            << ' ' << std::sqrt(dispSigA) << ' ' << info.sigMeanB - info.pedMeanB << ' ' << std::sqrt(dispSigB) \
            << ' ' << signalA << ' ' << signalB << ' ' << channelSignal << ' ' \
            << (info.sigMeanA - info.pedMeanA) / std::sqrt(dispPedA) << ' ' \
            << (info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB) << '\n';
+*/
+      data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
+           << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << '\n';
 
       double MeanSignalCountToCharge = CapacityChargeCoefficient[ui->ComboBox_AcquisitionCapacity->currentIndex()];
       if (ui->RadioButton_Adc16Bit->isChecked())
