@@ -1336,6 +1336,7 @@ void MainWindow::acquisitionSerialPortDataReady()
     QApplication::setOverrideCursor(Qt::WaitCursor);
     timeWaitingBegin = std::chrono::steady_clock::now();
     this->spillTimeoutTimer->start();
+    qDebug() << Q_FUNC_INFO << "Start accepted";
   }
   if (this->acquisitionResponseBuffer.startsWith("Start") && this->acquisitionResponseBuffer.endsWith("Finish"))
   {
