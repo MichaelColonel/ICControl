@@ -178,7 +178,7 @@ MainWindow::MainWindow(QWidget *parent)
 //  this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean charge (pC)");
   this->getVerticalStripsHist()->GetYaxis()->SetTitle("Mean signal, ADC counts");
 
-  constexpr Color_t colors[2] = { kBlack, kGreen };
+  constexpr Color_t colors[2] = { kBlack, kRed };
   this->multiGraphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TMultiGraph( "mgHoriz", "Horizontal Strips (Vertical profile);Strips;Mean signal, ADC counts");
   this->multiGraphStrips[StripsOrientationType::ORIENTATION_VERTICAL] = new TMultiGraph( "mgVert", "Vertical Strips (Horizontal profile);Strips;Mean signal, ADC counts");
   this->graphStrips[StripsOrientationType::ORIENTATION_HORIZONTAL] = new TGraphErrors(ChipsHorizontalStrips.size() * CHANNELS_PER_CHIP, GraphHorizontalStripsNumbers.data(), GraphHorizontalStrips.data());
