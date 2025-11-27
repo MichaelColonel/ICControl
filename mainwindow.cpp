@@ -86,6 +86,8 @@ void ReverseBits(std::bitset< N >& b)
   }
 }
 
+std::ofstream profile("Int.txt");
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -1795,7 +1797,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   double refVB = this->chipChannelCalibrationB[refV]; // reference vertical value side-B
   double refAmplH = this->chipChannelCalibrationAmplitude[refAmplitudeH]; // reference horizontal amplitude value
   double refAmplV = this->chipChannelCalibrationAmplitude[refAmplitudeV]; // reference vertical amplitude value
-
+/*
   int capIndex = this->ui->ComboBox_AcquisitionCapacity->currentIndex();
   double cap = CapacityCoefficient[capIndex];
   int intTime = this->ui->HorizontalSlider_IntegrationTime->value();
@@ -1805,7 +1807,7 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   filenameStream << "ChannelsAmp_" << text.toStdString() << '_' << cap << '_' << intTime << ".txt";
   std::string filename = filenameStream.str();
   std::ofstream data(filename);
-
+*/
   int k = 0;
   for (auto iter = this->chipsAddresses.begin(); iter != this->chipsAddresses.end(); ++iter)
   {
@@ -1905,7 +1907,9 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 
       double calibSignalA = (infoCalib.sigSumA - infoCalib.sigCountA * infoCalib.pedMeanA) / info.sigCountA;
       double calibSignalB = (infoCalib.sigSumB - infoCalib.sigCountB * infoCalib.pedMeanB) / info.sigCountB;
-      double calibChannelSignal = refAmpl * (calibSignalA + calibSignalB) / (2. * currAmpl);
+      double calibSignal = (calibSignalA + calibSignalB) / 2.;
+//      double calibChannelSignal = refAmpl * calibSignal / currAmpl;
+      double calibChannelSignal = infoCalib.sigCountA * (refAmpl * calibSignal) / currAmpl;
       double calibDispSigA = infoCalib.sigMom2A - infoCalib.sigMeanA * infoCalib.sigMeanA;
 
       double dispPedA = info.pedMom2A - info.pedMeanA * info.pedMeanA;
@@ -1953,10 +1957,10 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
            << (info.sigMeanA - info.pedMeanA) / std::sqrt(dispPedA) << ' ' \
            << (info.sigMeanB - info.pedMeanB) / std::sqrt(dispPedB) << '\n';
 */
-
+/*
       data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
            << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << ' ' << ((calibSignalA + calibSignalB) / 2.) << '\n';
-
+*/
       double MeanSignalCountToCharge = CapacityChargeCoefficient[ui->ComboBox_AcquisitionCapacity->currentIndex()];
       if (ui->RadioButton_Adc16Bit->isChecked())
       {
@@ -2086,8 +2090,42 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
     }
   }
 
-  data.close();
+//  data.close();
 
+// Vertical integ profile
+  for (Int_t horizStrips = 0; horizStrips < CHANNELS_PER_PLANE; ++horizStrips)
+  {
+    Double_t xH, yH;
+    Int_t pos = this->getHorizontalCalibratedStripsGraph()->GetPoint(horizStrips, xH, yH);
+    profile << yH;
+    if (horizStrips < (CHANNELS_PER_PLANE - 1))
+    {
+      profile << ',';
+    }
+    else
+    {
+      profile << '\n';
+    }
+    Q_UNUSED(pos);
+  }
+
+/*
+  for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_PLANE; ++vertStrips)
+  {
+    Double_t xV, yV;
+    Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint(vertStrips, xV, yV);
+    profile << yV;
+    if (vertStrips < (CHANNELS_PER_PLANE - 1))
+    {
+      profile << ',';
+    }
+    else
+    {
+      profile << '\n';
+    }
+    Q_UNUSED(pos);
+  }
+*/
   this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
   this->hist2Pad[ORIENTATION_VERTICAL]->Update();
   this->graphPad[ORIENTATION_VERTICAL]->Modified();
