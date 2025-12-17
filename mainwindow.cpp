@@ -86,7 +86,7 @@ void ReverseBits(std::bitset< N >& b)
   }
 }
 
-std::ofstream profile("Int.txt");
+std::ofstream profile("/tmp/ProfileCharge.txt");
 
 }
 
@@ -1777,6 +1777,20 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
   formChipStrip( this->horizontalChipChannelStrips, HorizontalChipChannels); // horizontal
   formChipStrip( this->verticalChipChannelStrips, VerticalChipChannels); // vertical
 
+  double MeanSignalCountToCharge = CapacityChargeCoefficient[ui->ComboBox_AcquisitionCapacity->currentIndex()];
+  if (ui->RadioButton_Adc16Bit->isChecked())
+  {
+    MeanSignalCountToCharge /= double(RESOLUTION_16BIT);
+  }
+  else if (ui->RadioButton_Adc20Bit->isChecked())
+  {
+    MeanSignalCountToCharge /= double(RESOLUTION_20BIT);
+  }
+  else
+  {
+    MeanSignalCountToCharge /= double(RESOLUTION_16BIT);
+  }
+
   if (this->chipsAddresses.size() != static_cast< size_t >(nofChips))
   {
     qWarning() << Q_FUNC_INFO << tr("Wrong number of chips for reconsruction.\nChips enabled: %1, chips acquired: %2").arg(nofChips).arg(this->chipsAddresses.size());
@@ -1961,20 +1975,6 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
       data << chipAddress + 1 << ' ' << i + 1 << ' ' << info.pedMeanA << ' ' << std::sqrt(dispPedA) \
            << ' ' << info.pedMeanB << ' ' << std::sqrt(dispPedB) << ' ' << ((calibSignalA + calibSignalB) / 2.) << '\n';
 */
-      double MeanSignalCountToCharge = CapacityChargeCoefficient[ui->ComboBox_AcquisitionCapacity->currentIndex()];
-      if (ui->RadioButton_Adc16Bit->isChecked())
-      {
-        MeanSignalCountToCharge /= double(RESOLUTION_16BIT);
-      }
-      else if (ui->RadioButton_Adc20Bit->isChecked())
-      {
-        MeanSignalCountToCharge /= double(RESOLUTION_20BIT);
-      }
-      else
-      {
-        MeanSignalCountToCharge /= double(RESOLUTION_16BIT);
-      }
-
       std::pair< int, int > chipChannel( chipAddress + 1, i + 1);
 
       auto findChipStrip = [chipChannel](const std::array< std::pair< int, int >, CHANNELS_PER_PLANE >& chipStripMask) -> int {
@@ -2092,40 +2092,44 @@ void MainWindow::onProcessSpillChannelsCountsClicked()
 
 //  data.close();
 
+  Double_t chargeVert = 0., chargeHor = 0.;
 // Vertical integ profile
   for (Int_t horizStrips = 0; horizStrips < CHANNELS_PER_PLANE; ++horizStrips)
   {
     Double_t xH, yH;
     Int_t pos = this->getHorizontalCalibratedStripsGraph()->GetPoint(horizStrips, xH, yH);
-    profile << yH;
+    chargeVert += (yH * MeanSignalCountToCharge);
+//    profile << yH;
     if (horizStrips < (CHANNELS_PER_PLANE - 1))
     {
-      profile << ',';
+//      profile << ',';
     }
     else
     {
-      profile << '\n';
+//      profile << '\n';
     }
     Q_UNUSED(pos);
   }
 
-/*
+
   for (Int_t vertStrips = 0; vertStrips < CHANNELS_PER_PLANE; ++vertStrips)
   {
     Double_t xV, yV;
     Int_t pos = this->getVerticalCalibratedStripsGraph()->GetPoint(vertStrips, xV, yV);
-    profile << yV;
+    chargeHor += (yV * MeanSignalCountToCharge);
+//    profile << yV;
     if (vertStrips < (CHANNELS_PER_PLANE - 1))
     {
-      profile << ',';
+//      profile << ',';
     }
     else
     {
-      profile << '\n';
+//      profile << '\n';
     }
     Q_UNUSED(pos);
   }
-*/
+  profile << chargeVert << ' ' << chargeHor << '\n';
+
   this->hist2Pad[ORIENTATION_VERTICAL]->Modified();
   this->hist2Pad[ORIENTATION_VERTICAL]->Update();
   this->graphPad[ORIENTATION_VERTICAL]->Modified();
@@ -2664,6 +2668,8 @@ void MainWindow::onDeviceEnabledCheckBoxChecked(bool state)
   {
     qCritical() << Q_FUNC_INFO << "pos == -1";
   }
+
+  qCritical() << Q_FUNC_INFO << allEnabled.to_ulong();
 
   if (allEnabled.none())
   {

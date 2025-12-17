@@ -2332,7 +2332,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="ButtonGroup_SelectedCamera"/>
   <buttongroup name="ButtonGroup_AdcMode"/>
+  <buttongroup name="ButtonGroup_SelectedCamera"/>
  </buttongroups>
 </ui>
